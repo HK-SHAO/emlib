@@ -23,11 +23,11 @@ jobs:
 
       # 安装依赖
       - name: Install dependencies
-        run: cd app && bun i --frozen-lockfile
+        run: bun i --frozen-lockfile
 
       # 运行构建脚本
       - name: Build Bun
-        run: cd app && bun run build
+        run: bun run build
 
       # 查看 workflow 的文档来获取更多信息
       # @see https://github.com/crazy-max/ghaction-github-pages
@@ -37,7 +37,7 @@ jobs:
           # 部署到 gh-pages 分支
           target_branch: gh-pages
           # 创建 CNAME 绑定域名
-          fqdn: shao.fun
+          fqdn: github.tokenflow.chat
           # 创建 .nojekyll 禁用 jekyll
           jekyll: false
           # 部署目录
