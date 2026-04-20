@@ -37,7 +37,7 @@ jobs:
           # 部署到 gh-pages 分支
           target_branch: gh-pages
           # 创建 CNAME 绑定域名
-          fqdn: github.tokenflow.chat
+          fqdn: eml.tokenflow.chat
           # 创建 .nojekyll 禁用 jekyll
           jekyll: false
           # 部署目录
