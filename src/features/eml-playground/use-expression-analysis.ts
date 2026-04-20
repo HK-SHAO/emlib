@@ -63,7 +63,7 @@ export function useExpressionAnalysis(
     } catch (error) {
       return {
         ok: false,
-        error: error instanceof Error ? error.message : "Unknown parser error",
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }, [deferredExpression]);

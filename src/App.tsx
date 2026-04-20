@@ -1,8 +1,14 @@
 import { lazy } from "react";
 
-import { HeroPanelFallback, HighlightsGridFallback, PlaygroundStudioFallback, SummaryPanelsFallback } from "@/components/section-fallbacks";
+import {
+  HeroPanelFallback,
+  HighlightsGridFallback,
+  PlaygroundStudioFallback,
+  SummaryPanelsFallback,
+} from "@/components/section-fallbacks";
 import { LazySection } from "@/components/lazy-section";
 import "./index.css";
+import { LanguageToggle } from "./components/language-toggle";
 
 const HeroPanel = lazy(() => import("@/features/eml-playground/hero-panel"));
 const HighlightsGrid = lazy(
@@ -36,6 +42,7 @@ export function App() {
           component={PlaygroundStudio}
           fallback={<PlaygroundStudioFallback />}
         />
+        <LanguageToggle />
       </section>
     </main>
   );

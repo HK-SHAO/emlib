@@ -2,6 +2,10 @@
 
 一个基于 Bun + React 19 的 EML 可视化 playground，用来把论文里的核心理论、`emlib` 的 lowering 能力，以及 D2 结构图渲染放到同一个前端界面里。
 
+原论文：
+`All elementary functions from a single binary operator`
+[https://arxiv.org/abs/2603.21852](https://arxiv.org/abs/2603.21852)
+
 ## 现在这版做了什么
 
 - 重构了 `src` 目录，把大体量的页面逻辑拆成 `overview`、表达式分析 hook、D2 预览 hook 和交互式 playground 模块

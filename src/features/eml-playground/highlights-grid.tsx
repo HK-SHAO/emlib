@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useI18n } from "@/i18n";
 
 function SectionCard({
   icon: Icon,
@@ -37,16 +38,22 @@ function SectionCard({
 }
 
 export default function HighlightsGrid() {
+  const { messages } = useI18n();
+
   return (
     <section className="grid gap-4 lg:grid-cols-3">
-      {paperHighlights.map((item) => (
-        <SectionCard
-          key={item.title}
-          icon={item.icon}
-          title={item.title}
-          text={item.text}
-        />
-      ))}
+      {messages.highlights.map((highlight, index) => {
+        const icon = paperHighlights[index]!.icon;
+
+        return (
+          <SectionCard
+            key={highlight.title}
+            icon={icon}
+            title={highlight.title}
+            text={highlight.text}
+          />
+        );
+      })}
     </section>
   );
 }

@@ -99,7 +99,7 @@ export function useD2Preview({
 
         setSvgMarkup("");
         setRenderError(
-          error instanceof Error ? error.message : "D2 render failed",
+          error instanceof Error ? error.message : String(error),
         );
       } finally {
         if (!cancelled) {
