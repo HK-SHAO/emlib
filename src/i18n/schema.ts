@@ -29,6 +29,7 @@ export const baseMessages = {
       highlights: "Highlights",
       summary: "Summary",
       playground: "Playground",
+      github: "GitHub",
     },
     localeNames: {
       "zh-CN": "Chinese",

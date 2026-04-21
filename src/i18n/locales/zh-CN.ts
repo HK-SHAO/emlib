@@ -11,6 +11,7 @@ export const zhCN = {
       highlights: "要点",
       summary: "详解",
       playground: "Playground",
+      github: "GitHub",
     },
     localeNames: {
       "zh-CN": "中文",

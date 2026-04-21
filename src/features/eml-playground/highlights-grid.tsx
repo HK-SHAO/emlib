@@ -1,4 +1,4 @@
-import { type LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 
 import { paperHighlights } from "@/features/eml-playground/constants";
 import {
@@ -14,7 +14,7 @@ function SectionCard({
   title,
   text,
 }: {
-  icon: LucideIcon;
+  icon: IconType;
   title: string;
   text: string;
 }) {

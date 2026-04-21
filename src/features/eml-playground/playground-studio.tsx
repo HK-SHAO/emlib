@@ -1,10 +1,10 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
-  Calculator,
-  Check,
-  Copy,
-} from "lucide-react";
+  LuArrowRight,
+  LuCalculator,
+  LuCheck,
+  LuCopy,
+} from "react-icons/lu";
 import {
   exprToD2,
   toString,
@@ -286,7 +286,7 @@ export function PlaygroundStudio() {
           <div className="rounded-[1rem] border border-[color:var(--line)] bg-white/78 p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-[0.8rem] bg-[color:var(--accent-soft)] text-[color:var(--accent-strong)]">
-                <Calculator className="size-5" />
+                <LuCalculator className="size-5" />
               </div>
               <div>
                 <div className="font-semibold text-[color:var(--ink)]">
@@ -353,7 +353,7 @@ export function PlaygroundStudio() {
                 <div className="min-w-0 rounded-[0.95rem] border border-[color:var(--line)] bg-white/78 p-4 sm:p-5">
                   <div className="flex items-center gap-2 text-sm font-semibold tracking-[0.15em] text-[color:var(--ink-soft)] uppercase">
                     <span>{messages.playground.lowering.title}</span>
-                    <ArrowRight className="size-4" />
+                    <LuArrowRight className="size-4" />
                   </div>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <div className="min-w-0">
@@ -495,9 +495,9 @@ export function PlaygroundStudio() {
                 }}
               >
                 {copyState === "copied" ? (
-                  <Check className="size-4" />
+                  <LuCheck className="size-4" />
                 ) : (
-                  <Copy className="size-4" />
+                  <LuCopy className="size-4" />
                 )}
                 {copyState === "copied"
                   ? messages.playground.d2Source.copySuccess
