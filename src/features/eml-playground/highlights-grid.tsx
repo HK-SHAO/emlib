@@ -21,13 +21,15 @@ function SectionCard({
   return (
     <Card className="paper-card border-[color:var(--line)]">
       <CardHeader className="gap-4">
-        <div className="flex size-11 items-center justify-center rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] text-[color:var(--accent-strong)]">
-          <Icon className="size-5" />
-        </div>
-        <div className="space-y-2">
+        <div className="flex gap-2 items-center">
+          <div className="flex size-11 items-center justify-center rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] text-[color:var(--accent-strong)]">
+            <Icon className="size-5" />
+          </div>
           <CardTitle className="font-display text-2xl text-[color:var(--ink)]">
             {title}
           </CardTitle>
+        </div>
+        <div className="space-y-2">
           <CardDescription className="leading-6 text-[color:var(--ink-soft)]">
             {text}
           </CardDescription>

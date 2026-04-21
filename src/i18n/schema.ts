@@ -24,6 +24,12 @@ export const baseMessages = {
     metaDescription:
       "A frontend EML playground for the paper, emlib lowering, and D2 SVG rendering.",
     languageLabel: "Language",
+    nav: {
+      overview: "Overview",
+      highlights: "Highlights",
+      summary: "Summary",
+      playground: "Playground",
+    },
     localeNames: {
       "zh-CN": "Chinese",
       "en-US": "English",

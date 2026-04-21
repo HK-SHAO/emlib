@@ -1,4 +1,3 @@
-import { LanguageToggle } from "@/components/language-toggle";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/i18n";
 

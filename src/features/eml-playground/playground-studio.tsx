@@ -183,10 +183,7 @@ export function PlaygroundStudio() {
   };
 
   return (
-    <Card
-      className="paper-card border-[color:var(--line-strong)] py-5 sm:py-6"
-      id="playground"
-    >
+    <Card className="paper-card border-[color:var(--line-strong)] py-5 sm:py-6">
       <CardHeader className="gap-3 border-b border-[color:var(--line)]/70 px-5 pb-5 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-[11px] font-semibold tracking-[0.18em] text-[color:var(--ink-soft)] uppercase">

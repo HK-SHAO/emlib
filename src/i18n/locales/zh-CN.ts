@@ -6,6 +6,12 @@ export const zhCN = {
     metaDescription:
       "一个前端 EML playground，用来查看论文、emlib lowering 和 D2 SVG 渲染。",
     languageLabel: "语言",
+    nav: {
+      overview: "概览",
+      highlights: "要点",
+      summary: "详解",
+      playground: "Playground",
+    },
     localeNames: {
       "zh-CN": "中文",
       "en-US": "English",
