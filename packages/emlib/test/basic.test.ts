@@ -65,6 +65,57 @@ test('lossless arithmetic keeps exact rational and complex values', () => {
   expect(toString(valueToExpr(complex))).toBe('-1/5+2/5*i');
 });
 
+test('toPureEml uses compact paper witnesses for key arithmetic forms', () => {
+  const cases = [
+    ['-x', 15],
+    ['1/x', 15],
+    ['x*y', 25],
+    ['x/y', 39],
+    ['1/2', 39],
+  ] as const;
+
+  for (const [source, maxTokens] of cases) {
+    const lowered = toPureEml(parse(source));
+    expect(analyzeExpr(lowered).tokenCount).toBeLessThanOrEqual(maxTokens);
+  }
+});
+
+test('simplifyToElementary recognizes the new compact witnesses', () => {
+  expect(toString(simplifyToElementary(toPureEml(parse('1/x'))))).toBe('1/x');
+  expect(toString(simplifyToElementary(toPureEml(parse('x*y'))))).toBe('x*y');
+  expect(toString(simplifyToElementary(toPureEml(parse('x/y'))))).toBe('x/y');
+  expect(toString(simplifyToElementary(toPureEml(parse('x^2'))))).toBe('x^2');
+});
+
+test('compact EML witnesses stay numerically equivalent on arithmetic samples', () => {
+  const samples = [
+    { expr: '-x', env: { x: 2.5 } },
+    { expr: '1/x', env: { x: 2.5 } },
+    { expr: 'x*y', env: { x: 2.5, y: 4 } },
+    { expr: 'x/y', env: { x: 2.5, y: 4 } },
+    { expr: 'x^2', env: { x: 2.5 } },
+    { expr: 'sqrt(x)', env: { x: 2.5 } },
+  ] as const;
+
+  for (const { expr, env } of samples) {
+    const direct = evaluate(parse(expr), env);
+    const lowered = evaluate(toPureEml(parse(expr)), env);
+    expect(lowered.re).toBeCloseTo(direct.re, 8);
+    expect(lowered.im).toBeCloseTo(direct.im, 8);
+  }
+});
+
+test('toPureEml accepts iterative compression levels without regressing accuracy', () => {
+  const base = toPureEml(parse('tan(x)'));
+  const compressed = toPureEml(parse('tan(x)'), { compression: 'light' });
+  expect(analyzeExpr(compressed).tokenCount).toBeLessThanOrEqual(analyzeExpr(base).tokenCount);
+
+  const direct = evaluate(parse('tan(x)'), { x: 0.35 });
+  const lowered = evaluate(compressed, { x: 0.35 });
+  expect(lowered.re).toBeCloseTo(direct.re, 8);
+  expect(lowered.im).toBeCloseTo(direct.im, 8);
+});
+
 test('synthesis returns a finite candidate', () => {
   const result = synthesizePureEml(parse('ln(x)'), { maxLeaves: 7, beamWidth: 128, variables: ['x'] });
   expect(result).toBeDefined();
@@ -72,4 +123,5 @@ test('synthesis returns a finite candidate', () => {
     throw new Error('Expected a synthesis candidate for ln(x)');
   }
   expect(Number.isFinite(result.distance)).toBe(true);
+  expect(Number.isFinite(result.delta)).toBe(true);
 });

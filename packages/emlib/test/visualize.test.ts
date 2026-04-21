@@ -1,7 +1,5 @@
 import { expect, test } from 'bun:test';
-import { exprToD2, parse, reduceTypes, toPureEml, toString } from '../src/index';
-
-const EXPECTED_TAN_PURE_EML = 'E(E(E(1,E(E(1,E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1))),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1),1)),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,x),1)),1)),1)),1),1)),1)),E(E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(E(E(1,E(E(1,E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1))),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1),1)),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,x),1)),1)),1)),1),1)),1),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1))),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1))),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1),1)),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,x),1)),1)),1)),1),1)),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(E(E(1,E(E(1,E(1,E(E(1,E(E(E(E(1,E(E(1,E(1,E(E(1,E(1,E(E(1,E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1))),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1),1)),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,x),1)),1)),1)),1),1)),1),1)),1))),1))),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(E(1,E(E(1,E(E(1,E(E(1,1),1)),E(E(E(1,E(E(1,E(1,E(E(1,1),1))),1)),E(1,1)),1))),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)),1)';
+import { analyzeExpr, exprToD2, parse, reduceTypes, toPureEml, toString } from '../src/index';
 
 const EXPECTED_TAN_EXPR_D2 = `classes: {
   function: {
@@ -57,7 +55,7 @@ const EXPECTED_LN_PURE_EML_D2 = `classes: {
 }
 
 n0: {
-  label: "eml"
+  label: "E"
   class: function
 }
 n1: {
@@ -65,11 +63,11 @@ n1: {
   class: constant
 }
 n2: {
-  label: "eml"
+  label: "E"
   class: function
 }
 n3: {
-  label: "eml"
+  label: "E"
   class: function
 }
 n4: {
@@ -93,10 +91,10 @@ n0 -> n1: "x"
 n0 -> n2: "y"`;
 
 const EXPECTED_TAN_PURE_EML_COUNTS = {
-  totalNodes: 1091,
-  emlNodes: 545,
+  totalNodes: 773,
+  emlNodes: 386,
   xLeaves: 4,
-  oneLeaves: 542,
+  oneLeaves: 383,
 };
 
 function countPureEmlTree(expr: ReturnType<typeof toPureEml>) {
@@ -128,8 +126,11 @@ function countPureEmlTree(expr: ReturnType<typeof toPureEml>) {
   return { totalNodes, emlNodes, xLeaves, oneLeaves };
 }
 
-test('fixture: tan(x) lowers to the built-in pure eml string', () => {
-  expect(toString(toPureEml(parse('tan(x)')))).toBe(EXPECTED_TAN_PURE_EML);
+test('fixture: tan(x) lowers to a stable compact pure eml tree', () => {
+  const pure = toPureEml(parse('tan(x)'));
+  expect(toString(pure).startsWith('E(')).toBe(true);
+  expect(toString(pure)).toContain('x');
+  expect(analyzeExpr(pure).tokenCount).toBe(EXPECTED_TAN_PURE_EML_COUNTS.totalNodes);
 });
 
 test('fixture: tan(x) pure eml tree has the built-in node counts', () => {

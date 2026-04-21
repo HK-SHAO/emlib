@@ -2,6 +2,7 @@ import type { Expr } from './ast';
 import { exprEquals, isNumericValue, num } from './ast';
 import { countTokens, countTypes } from './analyze';
 import { reduceTypes } from './lower';
+import { parse } from './parser';
 import { toString } from './print';
 
 export interface RewriteRule {
@@ -12,6 +13,85 @@ export interface RewriteRule {
 function isOne(e: Expr): boolean { return isNumericValue(e, 1); }
 function isZero(e: Expr): boolean { return isNumericValue(e, 0); }
 function sameValue(a: Expr, b: Expr): boolean { return exprEquals(a, b); }
+
+const PLACEHOLDER_PREFIX = '__hole_';
+const SHORT_NEG_PATTERN = parse('E(E(1,E(1,E(1,E(E(1,1),1)))),E(__hole_x,1))');
+const SHORT_INV_PATTERN = parse('E(E(E(1,E(1,E(1,E(E(1,1),1)))),__hole_x),1)');
+const SHORT_MUL_PATTERN = parse(
+  'E(E(1,E(E(E(1,E(E(1,E(1,__hole_x)),1)),E(1,E(E(1,E(__hole_y,1)),1))),1)),1)',
+);
+const SHORT_DIV_PATTERN = parse(
+  'E(E(1,E(E(E(1,E(E(1,E(1,__hole_x)),1)),E(1,E(E(1,E(E(E(E(1,E(1,E(1,E(E(1,1),1)))),__hole_y),1),1)),1))),1)),1)',
+);
+
+function isPlaceholder(pattern: Expr): boolean {
+  return pattern.kind === 'var' && pattern.name.startsWith(PLACEHOLDER_PREFIX);
+}
+
+function matchPattern(pattern: Expr, expr: Expr, bindings: Record<string, Expr> = {}): Record<string, Expr> | null {
+  if (isPlaceholder(pattern)) {
+    const placeholder = pattern as Extract<Expr, { kind: 'var' }>;
+    const name = placeholder.name;
+    const bound = bindings[name];
+    if (!bound) {
+      bindings[name] = expr;
+      return bindings;
+    }
+    return exprEquals(bound, expr) ? bindings : null;
+  }
+
+  if (pattern.kind !== expr.kind) return null;
+  switch (pattern.kind) {
+    case 'num': {
+      const other = expr as typeof pattern;
+      return pattern.raw === other.raw ? bindings : null;
+    }
+    case 'var': {
+      const other = expr as typeof pattern;
+      return pattern.name === other.name ? bindings : null;
+    }
+    case 'const': {
+      const other = expr as typeof pattern;
+      return pattern.name === other.name ? bindings : null;
+    }
+    case 'eml':
+    case 'add':
+    case 'sub':
+    case 'mul':
+    case 'div':
+    case 'pow': {
+      const other = expr as typeof pattern;
+      const left = matchPattern(pattern.left, other.left, bindings);
+      return left ? matchPattern(pattern.right, other.right, left) : null;
+    }
+    case 'neg':
+    case 'exp':
+    case 'ln':
+    case 'sqrt':
+    case 'sin':
+    case 'cos':
+    case 'tan':
+    case 'cot':
+    case 'sec':
+    case 'csc':
+    case 'sinh':
+    case 'cosh':
+    case 'tanh':
+    case 'coth':
+    case 'sech':
+    case 'csch':
+    case 'asin':
+    case 'acos':
+    case 'atan':
+    case 'asec':
+    case 'acsc':
+    case 'acot':
+    case 'asinh':
+    case 'acosh':
+    case 'atanh':
+      return matchPattern(pattern.value, (expr as typeof pattern).value, bindings);
+  }
+}
 
 export const coreRewriteRules: RewriteRule[] = [
   {
@@ -24,13 +104,18 @@ export const coreRewriteRules: RewriteRule[] = [
           break;
         case 'sub':
           if (isZero(expr.right)) return [expr.left];
+          if (sameValue(expr.left, expr.right)) return [num(0)];
           break;
         case 'mul':
           if (isOne(expr.left)) return [expr.right];
           if (isOne(expr.right)) return [expr.left];
+          if (sameValue(expr.left, expr.right)) return [{ kind: 'pow', left: expr.left, right: num(2) }];
+          if (expr.left.kind === 'div' && isOne(expr.left.left)) return [{ kind: 'div', left: expr.right, right: expr.left.right }];
+          if (expr.right.kind === 'div' && isOne(expr.right.left)) return [{ kind: 'div', left: expr.left, right: expr.right.right }];
           break;
         case 'div':
           if (isOne(expr.right)) return [expr.left];
+          if (sameValue(expr.left, expr.right)) return [num(1)];
           break;
         case 'pow':
           if (isOne(expr.right)) return [expr.left];
@@ -68,6 +153,40 @@ export const coreRewriteRules: RewriteRule[] = [
           break;
       }
       return [];
+    },
+  },
+  {
+    name: 'eml-short-neg',
+    apply(expr) {
+      const match = matchPattern(SHORT_NEG_PATTERN, expr);
+      const x = match?.__hole_x;
+      return x ? [{ kind: 'neg', value: x }] : [];
+    },
+  },
+  {
+    name: 'eml-short-inv',
+    apply(expr) {
+      const match = matchPattern(SHORT_INV_PATTERN, expr);
+      const x = match?.__hole_x;
+      return x ? [{ kind: 'div', left: num(1), right: x }] : [];
+    },
+  },
+  {
+    name: 'eml-short-mul',
+    apply(expr) {
+      const match = matchPattern(SHORT_MUL_PATTERN, expr);
+      const x = match?.__hole_x;
+      const y = match?.__hole_y;
+      return x && y ? [{ kind: 'mul', left: x, right: y }] : [];
+    },
+  },
+  {
+    name: 'eml-short-div',
+    apply(expr) {
+      const match = matchPattern(SHORT_DIV_PATTERN, expr);
+      const x = match?.__hole_x;
+      const y = match?.__hole_y;
+      return x && y ? [{ kind: 'div', left: x, right: y }] : [];
     },
   },
   {
@@ -267,21 +386,92 @@ export interface SearchOptions {
   rules?: RewriteRule[];
 }
 
+const tokenScoreCache = new WeakMap<Expr, number>();
+const exprKeyCache = new WeakMap<Expr, string>();
+
+function exprKey(expr: Expr): string {
+  const cached = exprKeyCache.get(expr);
+  if (cached !== undefined) return cached;
+  const key = toString(expr);
+  exprKeyCache.set(expr, key);
+  return key;
+}
+
 function tokenScore(expr: Expr): number {
-  return countTokens(expr) + 0.05 * countTypes(expr);
+  const cached = tokenScoreCache.get(expr);
+  if (cached !== undefined) return cached;
+  const score = countTokens(expr) + 0.05 * countTypes(expr);
+  tokenScoreCache.set(expr, score);
+  return score;
+}
+
+function readabilityPenalty(expr: Expr): number {
+  switch (expr.kind) {
+    case 'mul':
+      return (sameValue(expr.left, expr.right) ? 4 : 1) + readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'add':
+      return 1 + readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'sub':
+      return 2 + readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'pow':
+      return readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'div':
+      return readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'eml':
+      return 3 + readabilityPenalty(expr.left) + readabilityPenalty(expr.right);
+    case 'neg':
+    case 'exp':
+    case 'ln':
+    case 'sqrt':
+    case 'sin':
+    case 'cos':
+    case 'tan':
+    case 'cot':
+    case 'sec':
+    case 'csc':
+    case 'sinh':
+    case 'cosh':
+    case 'tanh':
+    case 'coth':
+    case 'sech':
+    case 'csch':
+    case 'asin':
+    case 'acos':
+    case 'atan':
+    case 'asec':
+    case 'acsc':
+    case 'acot':
+    case 'asinh':
+    case 'acosh':
+    case 'atanh':
+      return readabilityPenalty(expr.value);
+    default:
+      return 0;
+  }
+}
+
+function compareReadable(a: Expr, b: Expr): number {
+  const tokenDiff = countTokens(a) - countTokens(b);
+  if (tokenDiff !== 0) return tokenDiff;
+  const readabilityDiff = readabilityPenalty(a) - readabilityPenalty(b);
+  if (readabilityDiff !== 0) return readabilityDiff;
+  const typeDiff = countTypes(a) - countTypes(b);
+  if (typeDiff !== 0) return typeDiff;
+  return exprKey(a).localeCompare(exprKey(b));
 }
 
 function rewriteGreedy(expr: Expr, rules: RewriteRule[]): Expr {
   let current = expr;
   for (let iter = 0; iter < 24; iter += 1) {
     const next = rewriteGreedyStep(current, rules);
-    if (toString(next) === toString(current)) return current;
+    if (exprKey(next) === exprKey(current)) return current;
     current = next;
   }
   return current;
 }
 
 function rewriteGreedyStep(expr: Expr, rules: RewriteRule[]): Expr {
+  const direct = applyRules(expr, rules);
   let base = expr;
   switch (expr.kind) {
     case 'eml':
@@ -323,18 +513,30 @@ function rewriteGreedyStep(expr: Expr, rules: RewriteRule[]): Expr {
       break;
   }
 
-  let best = base;
-  let bestScore = tokenScore(base);
+  const rewrittenBase = applyRules(base, rules);
+  return compareReadable(direct, rewrittenBase) <= 0 ? direct : rewrittenBase;
+}
+
+function applyRules(expr: Expr, rules: RewriteRule[]): Expr {
+  let best = expr;
   for (const rule of rules) {
-    for (const candidate of rule.apply(base)) {
-      const score = tokenScore(candidate);
-      if (score < bestScore) {
+    for (const candidate of rule.apply(expr)) {
+      if (compareReadable(candidate, best) < 0) {
         best = candidate;
-        bestScore = score;
       }
     }
   }
   return best;
+}
+
+function canonicalizeReadable(expr: Expr, rules: RewriteRule[]): Expr {
+  let current = expr;
+  for (let i = 0; i < 16; i += 1) {
+    const next = rewriteGreedyStep(current, rules);
+    if (exprKey(next) === exprKey(current)) return current;
+    current = next;
+  }
+  return current;
 }
 
 function optimize(root: Expr, options: SearchOptions = {}): Expr {
@@ -344,13 +546,14 @@ function optimize(root: Expr, options: SearchOptions = {}): Expr {
   const seed = rewriteGreedy(root, rules);
   const queue: Expr[] = [seed];
   const seen = new Set<string>();
+  const neighborCache = new Map<string, Expr[]>();
   let best = seed;
   let bestScore = tokenScore(seed);
 
   for (let iter = 0; iter < maxStates && queue.length > 0; iter += 1) {
     queue.sort((a, b) => tokenScore(a) - tokenScore(b));
     const current = queue.shift() as Expr;
-    const key = toString(current);
+    const key = exprKey(current);
     if (seen.has(key)) continue;
     seen.add(key);
 
@@ -360,18 +563,22 @@ function optimize(root: Expr, options: SearchOptions = {}): Expr {
       bestScore = currentScore;
     }
 
-    const next: Expr[] = [];
-    for (const { path, expr } of collect(current)) {
-      for (const rule of rules) {
-        for (const candidate of rule.apply(expr)) {
-          next.push(replaceAtPath(current, path, candidate));
+    const next = neighborCache.get(key) ?? (() => {
+      const neighbors: Expr[] = [];
+      for (const { path, expr } of collect(current)) {
+        for (const rule of rules) {
+          for (const candidate of rule.apply(expr)) {
+            neighbors.push(replaceAtPath(current, path, candidate));
+          }
         }
       }
-    }
+      neighborCache.set(key, neighbors);
+      return neighbors;
+    })();
 
     next.sort((a, b) => tokenScore(a) - tokenScore(b));
     for (const candidate of next.slice(0, beamWidth)) {
-      const candidateKey = toString(candidate);
+      const candidateKey = exprKey(candidate);
       if (!seen.has(candidateKey)) queue.push(candidate);
     }
   }
@@ -380,9 +587,11 @@ function optimize(root: Expr, options: SearchOptions = {}): Expr {
 }
 
 export function reduceTokens(root: Expr, options: SearchOptions = {}): Expr {
+  const rules = options.rules ?? coreRewriteRules;
   const seed = optimize(root, options);
   const emlSeed = optimize(reduceTypes(root), options);
-  return tokenScore(emlSeed) < tokenScore(seed) ? emlSeed : seed;
+  const best = compareReadable(emlSeed, seed) < 0 ? emlSeed : seed;
+  return canonicalizeReadable(best, rules);
 }
 
 export function simplifyToElementary(root: Expr, options: SearchOptions = {}): Expr {

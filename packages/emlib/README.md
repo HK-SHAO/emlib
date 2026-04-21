@@ -17,6 +17,7 @@ $$
 - `parse(expr)` parses a standard elementary expression AST
 - `reduceTypes(expr)` lowers toward the EML core, favoring fewer kinds even if the tree gets larger
 - `reduceTokens(expr)` searches for a shorter equivalent expression, allowing mixed vocabularies including `eml`
+- `compressPureEml(expr, options?)` runs an optional semantic compression pass over a pure EML tree, trading more search for fewer tokens while bounding `|delta|`
 - `analyzeExpr(expr)` reports `tokenCount`, `typeCount`, and the type set
 - `evaluateLossless(expr, env?)` performs exact arithmetic for integers, rationals, and complex rationals; transcendental leftovers stay symbolic
 - `evaluate(expr, env?)` performs approximate complex evaluation
@@ -58,6 +59,9 @@ console.log(analyzeExpr(expr));
 console.log(toString(reduceTypes(expr)));
 // pure EML form with only eml(...) and numeric leaves
 
+console.log(toString(reduceTypes(parse('tan(x)'), { compression: 'light' })));
+// same pure-EML interface, but allows an extra iterative compression pass
+
 console.log(toString(reduceTokens(expr)));
 // eml(x, y)
 
@@ -84,5 +88,7 @@ bun test
 ## Notes
 
 - `reduceTypes` is the “fewer kinds” direction; it is intentionally willing to expand token count.
+- `reduceTypes(expr, { compression })` adds an iterative DP / heuristic compression pass on top of exact lowering. Use `light`, `medium`, or `aggressive` when you want to spend more time to reduce pure-EML token count while keeping `|delta|` bounded on independent validation samples.
 - `reduceTokens` is the “shorter expression” direction; it can choose `eml(...)` or standard functions depending on which prints shorter.
+- `synthesizePureEml` and `compressPureEml` now report both RMSE-like `distance` and max absolute validation error `delta`.
 - `evaluateLossless` is exact on algebraic-rational arithmetic. For transcendentals like `sin(1/3)`, it preserves the symbolic value instead of silently rounding.
