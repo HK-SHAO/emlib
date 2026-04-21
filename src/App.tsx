@@ -1,5 +1,6 @@
 import { lazy } from "react";
 
+import { AppFooter } from "@/components/app-footer";
 import { AppNav } from "@/components/app-nav";
 import {
   HeroPanelFallback,
@@ -33,6 +34,7 @@ export function App() {
           <LazySection component={PlaygroundStudio} fallback={<PlaygroundStudioFallback />} />
         </section>
       </section>
+      <AppFooter />
     </main>
   );
 }

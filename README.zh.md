@@ -164,7 +164,7 @@ console.log(exprToD2(expr));
 
 ## 文档
 
-- [docs/eml_deep_dive.md](./docs/eml_deep_dive.md)：一份更完整的中文论文解读和工程视角说明
+- [docs/eml_deep_dive.md](./docs/eml_deep_dive.md)：一份更完整的解读和工程视角说明
 - [docs/2603.21852v2.pdf](./docs/2603.21852v2.pdf)：仓库中保存的论文参考 PDF
 - [packages/emlib/README.md](./packages/emlib/README.md)：更偏向库本身的包级说明
 

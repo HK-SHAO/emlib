@@ -164,7 +164,7 @@ console.log(exprToD2(expr));
 
 ## Documentation
 
-- [docs/eml_deep_dive.md](./docs/eml_deep_dive.md): a longer Chinese walkthrough of the paper and the engineering interpretation behind this repo
+- [docs/eml_deep_dive.md](./docs/eml_deep_dive.md): a walkthrough of the paper and the engineering interpretation behind this repo
 - [docs/2603.21852v2.pdf](./docs/2603.21852v2.pdf): a local copy of the paper used as reference material
 - [packages/emlib/README.md](./packages/emlib/README.md): package-level notes focused on the library itself
 
