@@ -1,11 +1,29 @@
 import type { IconType } from "react-icons";
-import { LuBinary, LuBraces, LuCalculator, LuOrbit, LuWaypoints, LuWorkflow } from "react-icons/lu";
+import {
+  LuBinary,
+  LuBrain,
+  LuBraces,
+  LuCalculator,
+  LuOrbit,
+  LuWaypoints,
+  LuWorkflow,
+} from "react-icons/lu";
 
 export type DiagramMode = "standard" | "pure";
+export type DiagramSource = "standard" | "pure" | "shortest" | "lifted";
 export type LayoutMode = "dagre" | "elk";
+export type CompressionMode = "light" | "medium" | "aggressive";
+export type MasterPresetId = "exp" | "eMinusX" | "ln";
 
 export const DEFAULT_EXPRESSION = "exp(x^2) - ln(x*y)";
 export const PURE_RENDER_LIMIT = 10000;
+export const DEFAULT_SYNTH_TARGET = "ln(x)";
+export const DEFAULT_SYNTH_MAX_LEAVES = 7;
+export const DEFAULT_SYNTH_BEAM_WIDTH = 128;
+export const DEFAULT_COMPRESSION_MODE: CompressionMode = "medium";
+export const DEFAULT_MASTER_PRESET: MasterPresetId = "exp";
+export const SYNTH_MAX_LEAF_OPTIONS = [5, 7, 9, 11] as const;
+export const SYNTH_BEAM_WIDTH_OPTIONS = [64, 128, 256, 384] as const;
 
 export type SectionHighlight = {
   icon: IconType;
@@ -21,4 +39,5 @@ export const emlibCapabilities: SectionHighlight[] = [
   { icon: LuBraces },
   { icon: LuWorkflow },
   { icon: LuCalculator },
+  { icon: LuBrain },
 ];

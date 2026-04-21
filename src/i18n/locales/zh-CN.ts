@@ -26,7 +26,7 @@ export const zhCN = {
     titleLead: "EML as a",
     titleAccent: "Generative Primitive",
     description:
-      "这个页面做三件事：给出论文里的核心构造，用 emlib 把标准表达式 lowering 成纯 EML，再把结果画成 SVG 结构图。",
+      "这个页面现在覆盖了更完整的实践闭环：先讲论文，再用同一个表达式串起 emlib 的主要变换，最后直接在浏览器里演示 synthesis 和 master formula 训练。",
     paperNote: {
       label: "原论文",
       title: "All elementary functions from a single binary operator",
@@ -108,7 +108,8 @@ export const zhCN = {
     },
     emlib: {
       title: "emlib 的功能",
-      description: "下面这些卡片，对应 packages/emlib 的主要 API。",
+      description:
+        "下面这些卡片，把 packages/emlib 当前较完整的能力面和 playground 里的 demo 一一对应起来。",
       capabilities: [
         {
           title: "Parse / Analyze",
@@ -128,15 +129,21 @@ export const zhCN = {
           detail: "evaluateLossless, evaluate, exprToD2",
           useCase: "适合做等价验证、调试和可视化展示。",
         },
+        {
+          title: "Synthesize / Train",
+          text: "搜索 EML witness，或用梯度去拟合 master formula。",
+          detail: "synthesizePureEml, createMasterTree, trainMasterFormula",
+          useCase: "适合做构造式搜索 demo、符号回归实验和恢复测试。",
+        },
       ],
     },
   },
   playground: {
     eyebrow: "Expression Playground",
-    badge: "解析 · lowering · 校验 · 渲染",
+    badge: "解析 · lowering · 缩短 · 精确求值 · 合成 · 训练",
     title: "在线 Playground",
     description:
-      "输入表达式后，页面会解析它、把它 lowering 成纯 EML、做数值比对，并导出 D2 SVG 结构图。",
+      "现在这个 playground 不只是看 lowering。你可以用同一个表达式直接体验 emlib 的主流程：解析与分析、降到纯 EML、搜索更短写法、查看 lossless 求值，并在浏览器里跑 synthesis / master formula demo。",
     samples: [
       { label: "核心算子", expr: "exp(x) - ln(y)" },
       { label: "对数展开", expr: "ln(x)" },
@@ -150,12 +157,17 @@ export const zhCN = {
       hint: "支持 + - * / ^、exp、ln、sqrt、三角 / 双曲函数以及 e / pi / i。",
     },
     controls: {
-      diagramModeLabel: "图模式",
-      diagramModeOptions: {
-        standard: "Standard Tree",
-        pure: "Pure EML Tree",
+      diagramSourceLabel: "预览来源",
+      diagramSourceOptions: {
+        standard: "标准 AST",
+        pure: "纯 EML",
+        shortest: "最短写法",
+        lifted: "回升表达式",
       },
-      layoutLabel: "D2 Layout",
+      layoutLabel: "D2 布局",
+      previewHintLabel: "预览方式",
+      previewHint:
+        "四张结果卡都可以直接送到右侧 SVG 面板，方便对比标准树、纯 EML witness、更短写法和从纯 EML 回升后的可读表达式。",
     },
     variables: {
       title: "变量取值",
@@ -168,23 +180,51 @@ export const zhCN = {
       tokenNodeLabel: "nodes",
       operatorTypeLabel: "operator(s)",
     },
-    lowering: {
-      title: "Lowering Result",
-      standardExpressionLabel: "Standard Expression",
-      pureExpressionLabel: "Pure EML Expression",
+    transforms: {
+      title: "核心 API 对照",
+      previewButton: "预览",
+      deltaLabel: "相对 Standard",
+      typesLabel: "运算族",
+      standard: {
+        title: "Standard AST",
+        description: "用户输入被 parse 后得到的原始表达式树。",
+        api: "parse + analyzeExpr",
+      },
+      pure: {
+        title: "Pure EML",
+        description: "精确 lowering 到 EML 核心语法后的结果。",
+        api: "toPureEml / reduceTypes",
+      },
+      shortest: {
+        title: "Shortest Form",
+        description: "以可读性为目标的搜索结果，可能混用标准运算和 EML。",
+        api: "reduceTokens",
+      },
+      lifted: {
+        title: "Lifted Form",
+        description: "从纯 EML witness 再回升到人类更容易读的表达式。",
+        api: "simplifyToElementary",
+      },
     },
     numericCheck: {
-      title: "数值一致性校验",
+      title: "数值与精确求值",
       standardValueLabel: "Standard Value",
       pureValueLabel: "Pure EML Value",
       deltaLabel: "|delta|",
+      exactValueLabel: "Lossless / symbolic value",
+      exactModes: {
+        exact: "Exact",
+        symbolic: "Symbolic",
+      },
+      exactHint: "evaluateLossless 会保留精确有理数；遇到分支敏感的超越项时，会保留符号形式。",
       evaluationError: ({ detail }: { detail: string }) => `数值校验未能完成：${detail}`,
+      exactError: ({ detail }: { detail: string }) => `精确求值未能完成：${detail}`,
     },
     parseError: ({ detail }: { detail: string }) => `表达式暂时无法解析：${detail}`,
     diagram: {
       eyebrow: "SVG Preview",
       titles: {
-        standard: "Standard Expression Tree",
+        standard: "Expression Tree",
         pure: "Pure EML Tree",
       },
       deferredHint: "预览区接近视口后才会异步加载 D2 运行时，避免把首屏 JS 包得过大。",
@@ -192,8 +232,16 @@ export const zhCN = {
       empty: "输入表达式后会在这里显示 SVG 结构图。",
       renderError: ({ detail }: { detail: string }) => `结构图渲染失败：${detail}`,
       layoutBadge: ({ layout }: { layout: string }) => `D2 / ${layout}`,
-      pureRenderLimitReason: ({ nodeCount, limit }: { nodeCount: string; limit: string }) =>
-        `当前纯 EML 树有 ${nodeCount} 个节点，超过前端预览阈值 ${limit}。可切回 Standard Tree 查看结构。`,
+      renderLimitReason: ({
+        label,
+        nodeCount,
+        limit,
+      }: {
+        label: string;
+        nodeCount: string;
+        limit: string;
+      }) =>
+        `${label} 当前有 ${nodeCount} 个节点，超过前端预览阈值 ${limit}。建议切换到更小的表示再看结构。`,
       invalidExpressionReason: "修正表达式后即可恢复图渲染。",
       previewAriaLabel: ({ mode }: { mode: string }) => `${mode} 图预览`,
     },
@@ -204,6 +252,100 @@ export const zhCN = {
       copyFailed: "复制失败",
       description:
         "这段 D2 文本由 exprToD2 生成，节点按 function / variable / constant 三类可视化。",
+    },
+    experiments: {
+      eyebrow: "Advanced Experiments",
+      badge: "搜索型 demo",
+      title: "合成、压缩与训练实验台",
+      description:
+        "这里集中展示 packages/emlib 里更偏搜索和优化的接口。它们不会跟随输入实时运行，而是按需启动，保证主 playground 仍然足够顺手。",
+      shared: {
+        running: "运行中...",
+      },
+      compression: {
+        eyebrow: "Compression",
+        title: "纯 EML 压缩",
+        description:
+          "对当前 pure EML witness 做一次受限搜索，看看能否在保持数值误差受控的前提下，找到更短的纯 EML 树。",
+        levelLabel: "压缩级别",
+        levels: {
+          light: "Light",
+          medium: "Medium",
+          aggressive: "Aggressive",
+        },
+        baselineLabel: "Pure tokens",
+        typesLabel: "类型集合",
+        afterLabel: "压缩后",
+        gainLabel: "Token 变化",
+        deltaLabel: "验证 delta",
+        runButton: "运行压缩搜索",
+        idleHint:
+          "这个实验直接以当前 pure EML 结果为目标，适合用来观察压缩接口什么时候有收益、什么时候已经接近内建 witness 的下界。",
+        requiresValidExpression: "先输入一个可解析的表达式，再运行压缩。",
+        noImprovement:
+          "当前预算下没有找到更短且通过验证的候选。这同样是有价值的信息，说明现有 witness 已经很有竞争力。",
+        success: "找到了更短且通过验证的 pure EML 候选。",
+      },
+      synthesis: {
+        eyebrow: "Synthesis",
+        title: "纯 EML 合成器",
+        description:
+          "直接在纯 EML 树空间里做数值驱动搜索，对应论文里“先数值筛，再验证”的构造式工作流。",
+        samples: [
+          { label: "ln(x)", expr: "ln(x)" },
+          { label: "exp(x)", expr: "exp(x)" },
+          { label: "e - x", expr: "e-x" },
+        ],
+        useCurrent: "使用当前表达式",
+        targetLabel: "合成目标",
+        maxLeavesLabel: "最大叶子数",
+        beamWidthLabel: "Beam 宽度",
+        targetTokensLabel: "目标 tokens",
+        variablesLabel: "变量",
+        resultTokensLabel: "结果 tokens",
+        leavesLabel: "叶子数",
+        distanceLabel: "Distance",
+        deltaLabel: "Delta",
+        runButton: "运行 synthesis",
+        idleHint:
+          "搜索从 {1, variables} 这些叶子开始，自底向上枚举 EML 树，并用数值 fingerprint 去重。",
+        noResult: "当前限制下没有得到候选。",
+        invalidTarget: ({ detail }: { detail: string }) => `合成目标无法解析：${detail}`,
+        success: "已经找到一个候选 pure EML witness。",
+      },
+      master: {
+        eyebrow: "Master Formula",
+        title: "梯度训练器",
+        description:
+          "用 Adam 去拟合论文里的参数化 master tree，再把训练好的软参数 clamp 回离散的 EML 表达式。",
+        presetLabel: "演示目标",
+        presets: {
+          exp: "exp(x) / depth 1",
+          eMinusX: "e - x / depth 2",
+          ln: "ln(x) / depth 3",
+        },
+        presetDescriptions: {
+          exp: "一个很稳定的 depth-1 示例，通常会收敛到 E(x,1)。",
+          eMinusX: "一个 depth-2 的恢复示例，可以直观看到训练器找回非平凡 witness。",
+          ln: "更难的 depth-3 示例。即使没恢复出精确 witness，也应当能看到 loss 明显下降。",
+        },
+        depthLabel: "深度",
+        nodesLabel: "节点数",
+        paramsLabel: "参数数",
+        lossLabel: "Loss",
+        restartsLabel: "重启次数",
+        epochsLabel: "Epochs",
+        statusLabel: "状态",
+        statuses: {
+          success: "Recovered",
+          partial: "Best fit",
+        },
+        runButton: "训练 master formula",
+        idleHint:
+          "为了保证浏览器里也能顺畅体验，这里跑的是一组偏轻量的训练配置，但流程仍然保留了 Adam + hardening + clamping 的结构。",
+        success: "训练已经在设定容差内恢复出离散表达式。",
+        partial: "训练改善了拟合，但在当前预算下还没有恢复出精确离散 witness。",
+      },
     },
   },
 } satisfies MessageDictionary;

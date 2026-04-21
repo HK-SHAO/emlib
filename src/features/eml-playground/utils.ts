@@ -87,6 +87,24 @@ export function metricDelta(a: { re: number; im: number }, b: { re: number; im: 
   return Math.hypot(a.re - b.re, a.im - b.im);
 }
 
+export function formatScientific(value: number): string {
+  if (Number.isNaN(value)) return "NaN";
+  if (!Number.isFinite(value)) return value > 0 ? "Infinity" : "-Infinity";
+  if (Math.abs(value) < 1e-12) return "0";
+  if (Math.abs(value) >= 1e4 || Math.abs(value) < 1e-3) return value.toExponential(3);
+  return formatScalar(value);
+}
+
+export function formatSignedDelta(value: number): string {
+  if (value === 0) return "0";
+  return value > 0 ? `+${value}` : String(value);
+}
+
+export function formatTypeSet(types: string[], limit = 5): string {
+  if (types.length <= limit) return types.join(", ");
+  return `${types.slice(0, limit).join(", ")}, ...`;
+}
+
 export function withTransparentD2Background(source: string): string {
   if (!source.trim()) return source;
   return `style: { fill: transparent }

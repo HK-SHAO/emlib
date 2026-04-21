@@ -45,7 +45,7 @@ export const baseMessages = {
     titleLead: "EML as a",
     titleAccent: "Generative Primitive",
     description:
-      "This page does three things: summarize the paper's core construction, lower standard expressions into pure EML with emlib, and render the result as an SVG tree.",
+      "This page now covers the full practical loop: summarize the paper, compare emlib transforms on one expression, and demo synthesis plus master-formula training directly in the browser.",
     paperNote: {
       label: "Original paper",
       title: "All elementary functions from a single binary operator",
@@ -128,7 +128,7 @@ export const baseMessages = {
     },
     emlib: {
       title: "What emlib does",
-      description: "These cards map to the main APIs in packages/emlib.",
+      description: "These cards map the latest packages/emlib capabilities to the demos below.",
       capabilities: [
         {
           title: "Parse / Analyze",
@@ -148,15 +148,22 @@ export const baseMessages = {
           detail: "evaluateLossless, evaluate, exprToD2",
           useCase: "Good for equivalence checks, debugging, and visualization.",
         },
+        {
+          title: "Synthesize / Train",
+          text: "Search for EML witnesses or fit the master formula with gradients.",
+          detail: "synthesizePureEml, createMasterTree, trainMasterFormula",
+          useCase:
+            "Good for constructive search demos, symbolic regression experiments, and recovery tests.",
+        },
       ],
     },
   },
   playground: {
     eyebrow: "Expression Playground",
-    badge: "parse · lower · verify · render",
+    badge: "parse · lower · shorten · exact · synth · train",
     title: "Interactive Playground",
     description:
-      "Enter an expression and the page will parse it, lower it into pure EML, compare the two forms numerically, and render the structure as D2 SVG.",
+      "Use one expression to exercise the main emlib APIs: parse and analyze it, lower it into pure EML, search for a shorter readable form, inspect lossless evaluation, and run synthesis or master-formula demos in the browser.",
     samples: [
       { label: "Core operator", expr: "exp(x) - ln(y)" },
       { label: "Log expansion", expr: "ln(x)" },
@@ -170,12 +177,17 @@ export const baseMessages = {
       hint: "Supports + - * / ^, exp, ln, sqrt, trigonometric / hyperbolic functions, and e / pi / i.",
     },
     controls: {
-      diagramModeLabel: "Diagram mode",
-      diagramModeOptions: {
-        standard: "Standard Tree",
-        pure: "Pure EML Tree",
+      diagramSourceLabel: "Diagram source",
+      diagramSourceOptions: {
+        standard: "Standard AST",
+        pure: "Pure EML",
+        shortest: "Shortest form",
+        lifted: "Lifted form",
       },
       layoutLabel: "D2 layout",
+      previewHintLabel: "Preview",
+      previewHint:
+        "Each result card can be sent to the SVG pane, so you can compare the standard tree, the pure EML witness, the shortened form, and the lifted readable form side by side.",
     },
     variables: {
       title: "Variable values",
@@ -188,24 +200,54 @@ export const baseMessages = {
       tokenNodeLabel: "nodes",
       operatorTypeLabel: "operator(s)",
     },
-    lowering: {
-      title: "Lowering Result",
-      standardExpressionLabel: "Standard Expression",
-      pureExpressionLabel: "Pure EML Expression",
+    transforms: {
+      title: "API Compare",
+      previewButton: "Preview",
+      deltaLabel: "vs Standard",
+      typesLabel: "Operators",
+      standard: {
+        title: "Standard AST",
+        description: "The parsed input expression before any reduction.",
+        api: "parse + analyzeExpr",
+      },
+      pure: {
+        title: "Pure EML",
+        description: "The exact lowering into the EML core grammar.",
+        api: "toPureEml / reduceTypes",
+      },
+      shortest: {
+        title: "Shortest Form",
+        description: "A readability-first search that may mix standard operators and EML.",
+        api: "reduceTokens",
+      },
+      lifted: {
+        title: "Lifted Form",
+        description: "A readable expression reconstructed from the pure EML witness.",
+        api: "simplifyToElementary",
+      },
     },
     numericCheck: {
-      title: "Numeric Consistency Check",
+      title: "Numeric And Exact Evaluation",
       standardValueLabel: "Standard Value",
       pureValueLabel: "Pure EML Value",
       deltaLabel: "|delta|",
+      exactValueLabel: "Lossless / symbolic value",
+      exactModes: {
+        exact: "Exact",
+        symbolic: "Symbolic",
+      },
+      exactHint:
+        "evaluateLossless keeps rationals exact and preserves branch-sensitive transcendentals symbolically.",
       evaluationError: ({ detail }: { detail: string }) =>
         `Numeric verification could not be completed: ${detail}`,
+      exactError: ({ detail }: { detail: string }) =>
+        `Lossless evaluation could not be completed: ${detail}`,
     },
     parseError: ({ detail }: { detail: string }) => `The expression could not be parsed: ${detail}`,
     diagram: {
       eyebrow: "SVG Preview",
       titles: {
-        standard: "Standard Expression Tree",
+        standard: "Expression Tree",
         pure: "Pure EML Tree",
       },
       deferredHint:
@@ -215,8 +257,16 @@ export const baseMessages = {
       renderError: ({ detail }: { detail: string }) =>
         `The diagram could not be rendered: ${detail}`,
       layoutBadge: ({ layout }: { layout: string }) => `D2 / ${layout}`,
-      pureRenderLimitReason: ({ nodeCount, limit }: { nodeCount: string; limit: string }) =>
-        `The current pure EML tree has ${nodeCount} nodes, which exceeds the frontend preview threshold of ${limit}. Switch back to Standard Tree to inspect the structure.`,
+      renderLimitReason: ({
+        label,
+        nodeCount,
+        limit,
+      }: {
+        label: string;
+        nodeCount: string;
+        limit: string;
+      }) =>
+        `${label} currently has ${nodeCount} nodes, which exceeds the frontend preview threshold of ${limit}. Choose a smaller representation to inspect the structure.`,
       invalidExpressionReason: "Fix the expression to restore the diagram preview.",
       previewAriaLabel: ({ mode }: { mode: string }) => `${mode} diagram preview`,
     },
@@ -227,6 +277,103 @@ export const baseMessages = {
       copyFailed: "Copy failed",
       description:
         "This D2 text is generated by exprToD2. Nodes are visualized as function / variable / constant.",
+    },
+    experiments: {
+      eyebrow: "Advanced Experiments",
+      badge: "search-heavy demos",
+      title: "Synthesis, Compression, And Training",
+      description:
+        "These demos exercise the newer search-oriented interfaces from packages/emlib. They run only when requested so the main playground stays responsive.",
+      shared: {
+        running: "Running...",
+      },
+      compression: {
+        eyebrow: "Compression",
+        title: "Pure EML Compression",
+        description:
+          "Run a bounded search for a shorter pure EML witness while validating that the numeric delta stays small.",
+        levelLabel: "Compression level",
+        levels: {
+          light: "Light",
+          medium: "Medium",
+          aggressive: "Aggressive",
+        },
+        baselineLabel: "Pure tokens",
+        typesLabel: "Type set",
+        afterLabel: "Compressed",
+        gainLabel: "Token delta",
+        deltaLabel: "Validation delta",
+        runButton: "Run compression search",
+        idleHint:
+          "Use the current pure EML witness as the search target and see whether a shorter exact candidate exists under the selected budget.",
+        requiresValidExpression: "Enter a valid expression before running compression.",
+        noImprovement:
+          "No shorter exact candidate was found under the current search budget. That still tells you the current witness is already competitive.",
+        success: "A shorter validated pure EML candidate was found.",
+      },
+      synthesis: {
+        eyebrow: "Synthesis",
+        title: "Pure EML Synthesizer",
+        description:
+          "Search the pure EML tree space directly from numeric samples, mirroring the paper's constructive search workflow.",
+        samples: [
+          { label: "ln(x)", expr: "ln(x)" },
+          { label: "exp(x)", expr: "exp(x)" },
+          { label: "e - x", expr: "e-x" },
+        ],
+        useCurrent: "Use current",
+        targetLabel: "Synthesis target",
+        maxLeavesLabel: "Max leaves",
+        beamWidthLabel: "Beam width",
+        targetTokensLabel: "Target tokens",
+        variablesLabel: "Variables",
+        resultTokensLabel: "Result tokens",
+        leavesLabel: "Leaves",
+        distanceLabel: "Distance",
+        deltaLabel: "Delta",
+        runButton: "Run synthesis",
+        idleHint:
+          "This search starts from leaves {1, variables} and builds EML trees bottom-up, deduplicating candidates by numeric fingerprints.",
+        noResult: "No synthesis candidate was produced under the current limits.",
+        invalidTarget: ({ detail }: { detail: string }) =>
+          `The synthesis target could not be parsed: ${detail}`,
+        success: "A candidate pure EML witness was found for the target expression.",
+      },
+      master: {
+        eyebrow: "Master Formula",
+        title: "Gradient Trainer",
+        description:
+          "Fit the paper's parameterized master tree with Adam, then clamp it back into a discrete EML expression when training converges.",
+        presetLabel: "Demo target",
+        presets: {
+          exp: "exp(x) / depth 1",
+          eMinusX: "e - x / depth 2",
+          ln: "ln(x) / depth 3",
+        },
+        presetDescriptions: {
+          exp: "A stable depth-1 case that should snap cleanly to E(x,1).",
+          eMinusX:
+            "A depth-2 recovery demo that shows the trainer can recover a nontrivial witness.",
+          ln: "A harder depth-3 case. Expect progress in loss even when the exact witness is not recovered.",
+        },
+        depthLabel: "Depth",
+        nodesLabel: "Nodes",
+        paramsLabel: "Params",
+        lossLabel: "Loss",
+        restartsLabel: "Restarts",
+        epochsLabel: "Epochs",
+        statusLabel: "Status",
+        statuses: {
+          success: "Recovered",
+          partial: "Best fit",
+        },
+        runButton: "Train master formula",
+        idleHint:
+          "Training is intentionally on-demand. It runs a lighter browser-safe configuration of the Adam + hardening + clamping pipeline.",
+        success: "Training recovered a discrete expression within the requested tolerance.",
+        partial:
+          "Training improved the fit but did not recover an exact discrete witness under the current budget.",
+      },
     },
   },
 } as const;
