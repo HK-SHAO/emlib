@@ -1,7 +1,7 @@
 import type { Expr } from './ast';
 import { isNumericValue } from './ast';
 import { desugarElementary } from './elementary';
-import { evaluateLossless, losslessToApprox, type ApproxComplex, type LosslessInput, type LosslessValue } from './numeric';
+import { createLosslessEvaluator, losslessToApprox, type ApproxComplex, type LosslessInput, type LosslessValue } from './numeric';
 
 export interface Complex extends ApproxComplex {}
 
@@ -66,71 +66,124 @@ function matchEmlSub(expr: Expr): { left: Expr; right: Expr } | null {
 
 function toApprox(value: LosslessValue): Complex | null {
   if (value.kind === 'symbolic') return null;
-  return C(losslessToApprox(value).re, losslessToApprox(value).im);
+  const approx = losslessToApprox(value);
+  return C(approx.re, approx.im);
 }
 
 export function evaluateApprox(expr: Expr, env: Record<string, Complex | number> = {}): Complex {
-  const lossless = evaluateLossless(expr, env as Record<string, LosslessInput>);
-  const exact = toApprox(lossless);
-  if (exact) return exact;
+  const losslessEnv = env as Record<string, LosslessInput>;
+  const evaluateLosslessNode = createLosslessEvaluator(losslessEnv);
+  const approxMemo = new WeakMap<Expr, Complex>();
 
-  switch (expr.kind) {
-    case 'num': return C(expr.value);
-    case 'var': {
-      const v = env[expr.name];
-      if (v === undefined) throw new Error(`Missing variable ${expr.name}`);
-      return typeof v === 'number' ? C(v) : v;
+  const evaluateNode = (node: Expr): Complex => {
+    const cached = approxMemo.get(node);
+    if (cached) return cached;
+
+    const exact = toApprox(evaluateLosslessNode(node));
+    if (exact) {
+      approxMemo.set(node, exact);
+      return exact;
     }
-    case 'const':
-      if (expr.name === 'e') return C(Math.E);
-      if (expr.name === 'pi') return C(Math.PI);
-      return C(0, 1);
-    case 'neg': return cNeg(evaluateApprox(expr.value, env));
-    case 'add': return cAdd(evaluateApprox(expr.left, env), evaluateApprox(expr.right, env));
-    case 'sub': return cSub(evaluateApprox(expr.left, env), evaluateApprox(expr.right, env));
-    case 'mul': return cMul(evaluateApprox(expr.left, env), evaluateApprox(expr.right, env));
-    case 'div': return cDiv(evaluateApprox(expr.left, env), evaluateApprox(expr.right, env));
-    case 'pow': return cPow(evaluateApprox(expr.left, env), evaluateApprox(expr.right, env));
-    case 'exp': return cExp(evaluateApprox(expr.value, env));
-    case 'ln': return cLog(evaluateApprox(expr.value, env));
-    case 'sqrt': return cSqrt(evaluateApprox(expr.value, env));
-    case 'sin': return cSin(evaluateApprox(expr.value, env));
-    case 'cos': return cCos(evaluateApprox(expr.value, env));
-    case 'tan':
-    case 'cot':
-    case 'sec':
-    case 'csc':
-    case 'sinh':
-    case 'cosh':
-    case 'tanh':
-    case 'coth':
-    case 'sech':
-    case 'csch':
-    case 'asin':
-    case 'acos':
-    case 'atan':
-    case 'asec':
-    case 'acsc':
-    case 'acot':
-    case 'asinh':
-    case 'acosh':
-    case 'atanh':
-      return evaluateApprox(desugarElementary(expr), env);
-    case 'eml': {
-      const expArg = matchEmlExp(expr);
-      if (expArg) return cExp(evaluateApprox(expArg, env));
 
-      const logArg = matchEmlLn(expr);
-      if (logArg) return cLog(evaluateApprox(logArg, env));
-
-      const subArgs = matchEmlSub(expr);
-      if (subArgs) {
-        return cSub(evaluateApprox(subArgs.left, env), evaluateApprox(subArgs.right, env));
+    let result: Complex;
+    switch (node.kind) {
+      case 'num':
+        result = C(node.value);
+        break;
+      case 'var': {
+        const v = env[node.name];
+        if (v === undefined) throw new Error(`Missing variable ${node.name}`);
+        result = typeof v === 'number' ? C(v) : v;
+        break;
       }
+      case 'const':
+        if (node.name === 'e') result = C(Math.E);
+        else if (node.name === 'pi') result = C(Math.PI);
+        else result = C(0, 1);
+        break;
+      case 'neg':
+        result = cNeg(evaluateNode(node.value));
+        break;
+      case 'add':
+        result = cAdd(evaluateNode(node.left), evaluateNode(node.right));
+        break;
+      case 'sub':
+        result = cSub(evaluateNode(node.left), evaluateNode(node.right));
+        break;
+      case 'mul':
+        result = cMul(evaluateNode(node.left), evaluateNode(node.right));
+        break;
+      case 'div':
+        result = cDiv(evaluateNode(node.left), evaluateNode(node.right));
+        break;
+      case 'pow':
+        result = cPow(evaluateNode(node.left), evaluateNode(node.right));
+        break;
+      case 'exp':
+        result = cExp(evaluateNode(node.value));
+        break;
+      case 'ln':
+        result = cLog(evaluateNode(node.value));
+        break;
+      case 'sqrt':
+        result = cSqrt(evaluateNode(node.value));
+        break;
+      case 'sin':
+        result = cSin(evaluateNode(node.value));
+        break;
+      case 'cos':
+        result = cCos(evaluateNode(node.value));
+        break;
+      case 'tan':
+      case 'cot':
+      case 'sec':
+      case 'csc':
+      case 'sinh':
+      case 'cosh':
+      case 'tanh':
+      case 'coth':
+      case 'sech':
+      case 'csch':
+      case 'asin':
+      case 'acos':
+      case 'atan':
+      case 'asec':
+      case 'acsc':
+      case 'acot':
+      case 'asinh':
+      case 'acosh':
+      case 'atanh':
+        result = evaluateNode(desugarElementary(node));
+        break;
+      case 'eml': {
+        const expArg = matchEmlExp(node);
+        if (expArg) {
+          result = cExp(evaluateNode(expArg));
+          break;
+        }
 
-      return cSub(cExp(evaluateApprox(expr.left, env)), cLog(evaluateApprox(expr.right, env)));
+        const logArg = matchEmlLn(node);
+        if (logArg) {
+          result = cLog(evaluateNode(logArg));
+          break;
+        }
+
+        const subArgs = matchEmlSub(node);
+        if (subArgs) {
+          result = cSub(evaluateNode(subArgs.left), evaluateNode(subArgs.right));
+          break;
+        }
+
+        result = cSub(cExp(evaluateNode(node.left)), cLog(evaluateNode(node.right)));
+        break;
+      }
     }
-  }
+
+    approxMemo.set(node, result);
+    return result;
+  };
+
+  return evaluateNode(expr);
 }
 
 export function evaluate(expr: Expr, env: Record<string, Complex | number> = {}): Complex {

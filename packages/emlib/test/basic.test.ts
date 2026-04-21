@@ -65,6 +65,21 @@ test('lossless arithmetic keeps exact rational and complex values', () => {
   expect(toString(valueToExpr(complex))).toBe('-1/5+2/5*i');
 });
 
+test('lossless evaluation keeps safe elementary identities exact', () => {
+  expect(toString(valueToExpr(evaluateLossless(parse('sqrt(4)'))))).toBe('2');
+  expect(toString(valueToExpr(evaluateLossless(parse('sqrt(-4)'))))).toBe('2*i');
+  expect(toString(valueToExpr(evaluateLossless(parse('sin(0)'))))).toBe('0');
+  expect(toString(valueToExpr(evaluateLossless(parse('cos(0)'))))).toBe('1');
+  expect(toString(valueToExpr(evaluateLossless(parse('acosh(1)'))))).toBe('0');
+  expect(toString(valueToExpr(evaluateLossless(parse('exp(ln(2))'))))).toBe('2');
+  expect(toString(valueToExpr(evaluateLossless(parse('ln(exp(2))'))))).toBe('2');
+});
+
+test('lossless evaluation stays conservative on branch-sensitive log identities', () => {
+  const symbolic = evaluateLossless(parse('ln(exp(i))'));
+  expect(toString(valueToExpr(symbolic))).toBe('ln(exp(1*i))');
+});
+
 test('toPureEml uses compact paper witnesses for key arithmetic forms', () => {
   const cases = [
     ['-x', 15],
