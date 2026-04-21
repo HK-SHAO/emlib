@@ -8,9 +8,19 @@ import logoUrl from "@/logo.svg";
 
 const navItems = [
   { id: "overview", href: "#overview", key: "overview", icon: LuHouse },
-  { id: "highlights", href: "#highlights", key: "highlights", icon: LuLightbulb },
+  {
+    id: "highlights",
+    href: "#highlights",
+    key: "highlights",
+    icon: LuLightbulb,
+  },
   { id: "summary", href: "#summary", key: "summary", icon: LuBookOpen },
-  { id: "playground", href: "#playground", key: "playground", icon: LuFlaskConical },
+  {
+    id: "playground",
+    href: "#playground",
+    key: "playground",
+    icon: LuFlaskConical,
+  },
 ] as const;
 
 const externalItems = [
@@ -86,7 +96,9 @@ export function AppNav() {
                 );
               })}
             </nav>
-            <LanguageToggle />
+            <div className="not-sm:hidden">
+              <LanguageToggle />
+            </div>
           </div>
         </div>
       </div>

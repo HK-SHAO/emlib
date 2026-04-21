@@ -2,14 +2,15 @@ import { startTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { LuLanguages } from "react-icons/lu";
 
 export function LanguageToggle() {
   const { locale, locales, messages, setLocale } = useI18n();
 
   return (
     <div className="inline-flex items-center gap-1 rounded-full border border-[color:var(--line)] bg-white/68 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-      <span className="px-2 text-[10px] font-semibold tracking-[0.14em] text-[color:var(--ink-soft)] uppercase">
-        {messages.app.languageLabel}
+      <span className="px-2 font-semibold">
+        <LuLanguages aria-label={messages.app.languageLabel} />
       </span>
       {locales.map((option) => {
         const isActive = option === locale;
