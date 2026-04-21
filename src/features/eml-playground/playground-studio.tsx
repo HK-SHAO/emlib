@@ -1,14 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
-import {
-  LuArrowRight,
-  LuCalculator,
-  LuCheck,
-  LuCopy,
-} from "react-icons/lu";
-import {
-  exprToD2,
-  toString,
-} from "emlib";
+import { LuArrowRight, LuCalculator, LuCheck, LuCopy } from "react-icons/lu";
+import { exprToD2, toString } from "emlib";
 
 import {
   DEFAULT_EXPRESSION,
@@ -16,7 +8,10 @@ import {
   type DiagramMode,
   type LayoutMode,
 } from "@/features/eml-playground/constants";
-import { useD2Preview, usePreviewActivation } from "@/features/eml-playground/use-d2-preview";
+import {
+  useD2Preview,
+  usePreviewActivation,
+} from "@/features/eml-playground/use-d2-preview";
 import { useExpressionAnalysis } from "@/features/eml-playground/use-expression-analysis";
 import {
   defaultValueForVariable,
@@ -134,14 +129,19 @@ export function PlaygroundStudio() {
     }
 
     const activeExpr =
-      diagramMode === "pure" ? analysisState.pureExpr : analysisState.standardExpr;
+      diagramMode === "pure"
+        ? analysisState.pureExpr
+        : analysisState.standardExpr;
     const activeMetrics =
       diagramMode === "pure"
         ? analysisState.pureMetrics
         : analysisState.standardMetrics;
     const d2Source = withTransparentD2Background(exprToD2(activeExpr));
 
-    if (diagramMode === "pure" && activeMetrics.tokenCount > PURE_RENDER_LIMIT) {
+    if (
+      diagramMode === "pure" &&
+      activeMetrics.tokenCount > PURE_RENDER_LIMIT
+    ) {
       return {
         canRender: false,
         reason: messages.playground.diagram.pureRenderLimitReason({
@@ -336,7 +336,9 @@ export function PlaygroundStudio() {
                   tokenCount={analysisState.standardMetrics.tokenCount}
                   typeCount={analysisState.standardMetrics.typeCount}
                   tokenNodeLabel={messages.playground.metrics.tokenNodeLabel}
-                  operatorTypeLabel={messages.playground.metrics.operatorTypeLabel}
+                  operatorTypeLabel={
+                    messages.playground.metrics.operatorTypeLabel
+                  }
                   formatNumber={formatNumber}
                 />
                 <MetricCard
@@ -344,7 +346,9 @@ export function PlaygroundStudio() {
                   tokenCount={analysisState.pureMetrics.tokenCount}
                   typeCount={analysisState.pureMetrics.typeCount}
                   tokenNodeLabel={messages.playground.metrics.tokenNodeLabel}
-                  operatorTypeLabel={messages.playground.metrics.operatorTypeLabel}
+                  operatorTypeLabel={
+                    messages.playground.metrics.operatorTypeLabel
+                  }
                   formatNumber={formatNumber}
                 />
               </div>
@@ -423,20 +427,16 @@ export function PlaygroundStudio() {
         >
           <div className="diagram-shell">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--line)] px-5 py-4">
-              <div>
-                <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--ink-soft)] uppercase">
-                  {messages.playground.diagram.eyebrow}
-                </div>
-                <div className="mt-1 font-display text-2xl text-[color:var(--ink)]">
-                  {diagramMode === "pure"
-                    ? messages.playground.diagram.titles.pure
-                    : messages.playground.diagram.titles.standard}
-                </div>
+              <div className="mt-1 font-display text-2xl text-[color:var(--ink)]">
+                {diagramMode === "pure"
+                  ? messages.playground.diagram.titles.pure
+                  : messages.playground.diagram.titles.standard}
               </div>
               <div className="rounded-full border border-[color:var(--line)] bg-white/80 px-3 py-1 text-xs font-semibold text-[color:var(--ink-soft)]">
                 {messages.playground.diagram.layoutBadge({
                   layout: layoutMode,
-                })}
+                })}{" "}
+                / {messages.playground.diagram.eyebrow}
               </div>
             </div>
 

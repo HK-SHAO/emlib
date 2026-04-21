@@ -8,14 +8,15 @@ import {
 } from "react-icons/lu";
 
 import { LanguageToggle } from "@/components/language-toggle";
+import { useScrollSectionHash } from "@/hooks/use-scroll-section-hash";
 import { useI18n } from "@/i18n";
 import logoUrl from "@/logo.svg";
 
 const navItems = [
-  { href: "#overview", key: "overview", icon: LuHouse },
-  { href: "#highlights", key: "highlights", icon: LuLightbulb },
-  { href: "#summary", key: "summary", icon: LuBookOpen },
-  { href: "#playground", key: "playground", icon: LuFlaskConical },
+  { id: "overview", href: "#overview", key: "overview", icon: LuHouse },
+  { id: "highlights", href: "#highlights", key: "highlights", icon: LuLightbulb },
+  { id: "summary", href: "#summary", key: "summary", icon: LuBookOpen },
+  { id: "playground", href: "#playground", key: "playground", icon: LuFlaskConical },
 ] as const;
 
 const externalItems = [
@@ -32,6 +33,7 @@ const externalItems = [
 
 export function AppNav() {
   const { messages } = useI18n();
+  const { activeId } = useScrollSectionHash(navItems.map((item) => item.id));
 
   return (
     <header className="sticky top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4 lg:px-6 lg:pt-5">
@@ -59,12 +61,14 @@ export function AppNav() {
             >
               {navItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = activeId === item.id;
 
                 return (
                   <a
                     key={item.href}
                     href={item.href}
-                    className="app-nav-link gap-2"
+                    aria-current={isActive ? "page" : undefined}
+                    className={`app-nav-link gap-2 ${isActive ? "app-nav-link-active" : ""}`}
                   >
                     <Icon className="size-4" aria-hidden="true" />
                     {messages.app.nav[item.key]}

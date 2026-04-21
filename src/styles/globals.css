@@ -80,7 +80,6 @@ canvas,
 svg {
     display: block;
     max-width: 100%;
-    font-style: italic;
     shape-margin: 0.75rem;
 }
 

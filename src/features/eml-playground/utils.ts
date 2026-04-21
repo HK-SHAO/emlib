@@ -1,6 +1,9 @@
 import type { Expr } from "emlib";
 
-export function collectVariables(expr: Expr, out = new Set<string>()): string[] {
+export function collectVariables(
+  expr: Expr,
+  out = new Set<string>(),
+): string[] {
   switch (expr.kind) {
     case "var":
       out.add(expr.name);
@@ -55,7 +58,10 @@ export function defaultValueForVariable(name: string): string {
   return "1";
 }
 
-export function parseEnvValue(raw: string | undefined, fallback: string): number {
+export function parseEnvValue(
+  raw: string | undefined,
+  fallback: string,
+): number {
   const parsed = Number(raw ?? fallback);
   return Number.isFinite(parsed) ? parsed : Number(fallback);
 }
@@ -92,7 +98,23 @@ export function metricDelta(
 
 export function withTransparentD2Background(source: string): string {
   if (!source.trim()) return source;
-  return `style: {\n  fill: transparent\n}\n\n${source}`;
+  return `style: { fill: transparent }
+
+classes: {
+  function: { shape: circle }
+
+  variable: {
+    shape: square
+    style: { fill: cyan }
+  }
+
+  constant: {
+    shape: square
+    style: { fill: pink }
+  }
+}
+
+${source}`;
 }
 
 export function normalizeRenderedSvg(output: unknown): string | null {

@@ -129,34 +129,8 @@ function renderExprTree(expr: Expr, state: D2State, nodePrefix: string, edgeLabe
   return id;
 }
 
-function renderClassDefinitions(): string[] {
-  return [
-    'classes: {',
-    '  function: {',
-    '    shape: circle',
-    '    style: {',
-    '      fill-pattern: none',
-    '    }',
-    '  }',
-    '  variable: {',
-    '    shape: square',
-    '    style: {',
-    '      fill-pattern: lines',
-    '    }',
-    '  }',
-    '  constant: {',
-    '    shape: square',
-    '    style: {',
-    '      fill-pattern: dots',
-    '    }',
-    '  }',
-    '}',
-  ];
-}
-
 function finalizeD2(state: D2State): string {
   const lines: string[] = [];
-  lines.push(...renderClassDefinitions());
   if (state.nodes.length > 0 || state.edges.length > 0) {
     lines.push('');
   }
@@ -172,5 +146,5 @@ export function exprToD2(expr: Expr, options: D2ExportOptions = {}): string {
   const { nodePrefix = 'n', edgeLabels = true } = options;
   const state: D2State = { nextId: 0, nodes: [], edges: [] };
   renderExprTree(expr, state, nodePrefix, edgeLabels);
-  return finalizeD2(state);
+  return finalizeD2(state).trim();
 }
