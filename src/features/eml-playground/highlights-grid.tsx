@@ -1,4 +1,5 @@
 import type { IconType } from "react-icons";
+import { LuSparkles } from "react-icons/lu";
 
 import { paperHighlights } from "@/features/eml-playground/constants";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,7 @@ export default function HighlightsGrid() {
   return (
     <section className="grid gap-4 lg:grid-cols-3">
       {messages.highlights.map((highlight, index) => {
-        const icon = paperHighlights[index]!.icon;
+        const icon = paperHighlights[index]?.icon ?? paperHighlights[0]?.icon ?? LuSparkles;
 
         return (
           <SectionCard

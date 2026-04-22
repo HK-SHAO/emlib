@@ -7,6 +7,8 @@ import { LuLanguages } from "react-icons/lu";
 export function LanguageToggle() {
   const { locale, locales, messages, setLocale } = useI18n();
 
+  if (locales.length === 0) return null;
+
   return (
     <div className="inline-flex items-center gap-1 rounded-full border border-[color:var(--line)] bg-white/68 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
       <span className="px-2 font-semibold">

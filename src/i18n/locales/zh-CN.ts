@@ -20,6 +20,9 @@ export const zhCN = {
       "zh-CN": "中",
       "en-US": "EN",
     },
+    emptyStates: {
+      tabs: "暂无可用选项。",
+    },
   },
   hero: {
     pills: ["所有初等函数的原子", "Playground"],
@@ -180,6 +183,14 @@ export const zhCN = {
       tokenNodeLabel: "nodes",
       operatorTypeLabel: "operator(s)",
     },
+    tabs: {
+      analyze: "解析与校验",
+      analyzeShort: "解析",
+      compare: "变换对照",
+      compareShort: "对照",
+      experiments: "实验台",
+      experimentsShort: "实验",
+    },
     transforms: {
       title: "核心 API 对照",
       previewButton: "预览",
@@ -259,6 +270,7 @@ export const zhCN = {
       title: "合成、压缩与训练实验台",
       description:
         "这里集中展示 packages/emlib 里更偏搜索和优化的接口。它们不会跟随输入实时运行，而是按需启动，保证主 playground 仍然足够顺手。",
+      previewTitle: "D2 结果预览",
       shared: {
         running: "运行中...",
       },

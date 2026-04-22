@@ -1,20 +1,21 @@
 import { emlibCapabilities } from "@/features/eml-playground/constants";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/i18n";
 
 export default function SummaryPanels() {
   const { messages } = useI18n();
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[minmax(0,0.5fr)_minmax(0,0.5fr)]">
+    <section className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <Card className="paper-card border-[color:var(--line)]">
-        <CardHeader className="gap-3">
-          <CardTitle className="font-display text-3xl text-[color:var(--ink)]">
-            {messages.summary.paper.title}
-          </CardTitle>
-          <CardDescription className="max-w-xl leading-7 text-[color:var(--ink-soft)]">
-            {messages.summary.paper.description}
-          </CardDescription>
+        <CardHeader className="gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="font-display text-3xl text-[color:var(--ink)]">
+              {messages.summary.paper.title}
+            </CardTitle>
+            <InfoTip label={messages.summary.paper.description} />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-[1rem] border border-[color:var(--line)] bg-[color:var(--paper-strong)] p-5">
@@ -43,17 +44,19 @@ export default function SummaryPanels() {
       </Card>
 
       <Card className="paper-card border-[color:var(--line)]">
-        <CardHeader className="gap-3">
-          <CardTitle className="font-display text-3xl text-[color:var(--ink)]">
-            {messages.summary.emlib.title}
-          </CardTitle>
-          <CardDescription className="leading-7 text-[color:var(--ink-soft)]">
-            {messages.summary.emlib.description}
-          </CardDescription>
+        <CardHeader className="gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="font-display text-3xl text-[color:var(--ink)]">
+              {messages.summary.emlib.title}
+            </CardTitle>
+            <InfoTip label={messages.summary.emlib.description} />
+          </div>
         </CardHeader>
         <CardContent className="grid gap-3">
           {messages.summary.emlib.capabilities.map((capability, index) => {
-            const Icon = emlibCapabilities[index]!.icon;
+            const Icon = emlibCapabilities[index]?.icon ?? emlibCapabilities[0]?.icon;
+
+            if (!Icon) return null;
 
             return (
               <div
@@ -67,13 +70,11 @@ export default function SummaryPanels() {
                   {capability.title}
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink-soft)]">
-                  {capability.text}
+                  {capability.text}{" "}
+                  <span className="text-[color:var(--ink-soft)]/75">{capability.useCase}</span>
                 </p>
-                <div className="mt-3 text-xs leading-5 text-[color:var(--ink-soft)]/80">
+                <div className="mt-2 text-xs leading-5 text-[color:var(--ink-soft)]/78">
                   {capability.detail}
-                </div>
-                <div className="mt-2 text-xs leading-5 text-[color:var(--ink-soft)]/70">
-                  {capability.useCase}
                 </div>
               </div>
             );

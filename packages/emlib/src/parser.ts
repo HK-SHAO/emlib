@@ -95,13 +95,18 @@ class Lexer {
   }
 }
 
+function formatTokenForError(token: Token): string {
+  if (token.kind === "eof") return "end of input";
+  return token.value ? `${token.kind}:${token.value}` : token.kind;
+}
+
 export function parse(input: string): Expr {
   const lexer = new Lexer(input);
   let tok: Token = lexer.next();
 
   const eat = (kind?: Token["kind"], value?: string): Token => {
     if ((kind && tok.kind !== kind) || (value && tok.value !== value)) {
-      throw new Error(`Unexpected token ${tok.kind}:${tok.value}`);
+      throw new Error(`Unexpected token ${formatTokenForError(tok)}`);
     }
     const out = tok;
     tok = lexer.next();
@@ -181,10 +186,12 @@ export function parse(input: string): Expr {
       eat("op", ")");
       return e;
     }
-    throw new Error(`Unexpected token ${tok.kind}:${tok.value}`);
+    throw new Error(`Unexpected token ${formatTokenForError(tok)}`);
   };
 
   const result = parseExpr();
-  if (tok.kind !== "eof") throw new Error(`Unexpected trailing token ${tok.kind}:${tok.value}`);
+  if (tok.kind !== "eof") {
+    throw new Error(`Unexpected trailing token ${formatTokenForError(tok)}`);
+  }
   return result;
 }

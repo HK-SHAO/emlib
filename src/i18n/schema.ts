@@ -39,6 +39,9 @@ export const baseMessages = {
       "zh-CN": "中",
       "en-US": "EN",
     },
+    emptyStates: {
+      tabs: "No options available.",
+    },
   },
   hero: {
     pills: ["All elementary functions from a single operator", "Playground"],
@@ -200,6 +203,14 @@ export const baseMessages = {
       tokenNodeLabel: "nodes",
       operatorTypeLabel: "operator(s)",
     },
+    tabs: {
+      analyze: "Analyze And Validate",
+      analyzeShort: "Analyze",
+      compare: "Transforms",
+      compareShort: "Compare",
+      experiments: "Experiments",
+      experimentsShort: "Labs",
+    },
     transforms: {
       title: "API Compare",
       previewButton: "Preview",
@@ -284,6 +295,7 @@ export const baseMessages = {
       title: "Synthesis, Compression, And Training",
       description:
         "These demos exercise the newer search-oriented interfaces from packages/emlib. They run only when requested so the main playground stays responsive.",
+      previewTitle: "D2 Result Preview",
       shared: {
         running: "Running...",
       },
