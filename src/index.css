@@ -224,6 +224,21 @@
     background: transparent;
   }
 
+  .d2-viewport-loading {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(252, 248, 240, 0.78)),
+      linear-gradient(90deg, rgba(52, 80, 93, 0.03) 1px, transparent 1px),
+      linear-gradient(rgba(52, 80, 93, 0.03) 1px, transparent 1px);
+    background-size:
+      auto,
+      20px 20px,
+      20px 20px;
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+
   .d2-preview-image {
     min-width: 0;
     width: 100%;
@@ -231,6 +246,15 @@
     display: block;
     background: transparent;
     object-fit: contain;
+  }
+
+  .d2-preview-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
   }
 }
 

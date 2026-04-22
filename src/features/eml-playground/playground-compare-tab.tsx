@@ -34,13 +34,16 @@ export default function PlaygroundCompareTab({ studio }: { studio: PlaygroundStu
             key={view.key}
             active={view.key === diagramSource}
             title={view.title}
+            summary={view.summary}
             description={view.description}
             apiLabel={view.apiLabel}
             transform={view.transform}
             standardMetrics={analysisState.standard.metrics}
             formatNumber={formatNumber}
             deltaLabel={messages.playground.transforms.deltaLabel}
+            tokenNodeLabel={messages.playground.metrics.tokenNodeLabel}
             typesLabel={messages.playground.transforms.typesLabel}
+            operatorTypeLabel={messages.playground.metrics.operatorTypeLabel}
             previewLabel={messages.playground.transforms.previewButton}
             onPreview={() => setDiagramSource(view.key)}
           />

@@ -1,23 +1,31 @@
 import { Button } from "@/components/ui/button";
+import { InfoTip } from "@/components/ui/info-tip";
 import { StatPill } from "@/features/eml-playground/playground-shared";
 import type { ExpressionTransform } from "@/features/eml-playground/use-expression-analysis";
-import { formatSignedDelta, formatTypeSet } from "@/features/eml-playground/utils";
+import {
+  formatSignedDelta,
+  formatTypeSet,
+} from "@/features/eml-playground/utils";
 
 export function ResultCard({
   active,
   title,
+  summary,
   description,
   apiLabel,
   transform,
   standardMetrics,
   previewLabel,
   deltaLabel,
+  tokenNodeLabel,
   typesLabel,
+  operatorTypeLabel,
   formatNumber,
   onPreview,
 }: {
   active: boolean;
   title: string;
+  summary: string;
   description: string;
   apiLabel: string;
   transform: ExpressionTransform;
@@ -27,7 +35,9 @@ export function ResultCard({
   };
   previewLabel: string;
   deltaLabel: string;
+  tokenNodeLabel: string;
   typesLabel: string;
+  operatorTypeLabel: string;
   formatNumber: (value: number) => string;
   onPreview: () => void;
 }) {
@@ -48,8 +58,15 @@ export function ResultCard({
           <div className="text-[10px] font-semibold tracking-[0.18em] text-[color:var(--ink-soft)] uppercase">
             {apiLabel}
           </div>
-          <div className="mt-1 text-[15px] font-semibold text-[color:var(--ink)]">{title}</div>
-          <p className="mt-1 text-sm leading-5 text-[color:var(--ink-soft)]">{description}</p>
+          <div className="mt-1 flex items-start gap-2">
+            <div className="min-w-0 text-[15px] font-semibold text-[color:var(--ink)]">
+              {title}
+            </div>
+            <InfoTip label={description} className="shrink-0" />
+          </div>
+          <p className="mt-1 text-sm leading-5 text-[color:var(--ink-soft)]">
+            {summary}
+          </p>
         </div>
         <Button
           type="button"
@@ -66,14 +83,23 @@ export function ResultCard({
         {transform.text}
       </pre>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <StatPill label="Nodes" value={formatNumber(transform.metrics.tokenCount)} />
-        <StatPill label="Operators" value={formatNumber(transform.metrics.typeCount)} />
+      <div className="mt-3 grid gap-2 grid-cols-2 xl:grid-cols-4">
+        <StatPill
+          label={tokenNodeLabel}
+          value={formatNumber(transform.metrics.tokenCount)}
+        />
+        <StatPill
+          label={operatorTypeLabel}
+          value={formatNumber(transform.metrics.typeCount)}
+        />
         <StatPill
           label={deltaLabel}
           value={`${formatSignedDelta(tokenDelta)} / ${formatSignedDelta(typeDelta)}`}
         />
-        <StatPill label={typesLabel} value={formatTypeSet(transform.metrics.types)} />
+        <StatPill
+          label={typesLabel}
+          value={formatTypeSet(transform.metrics.types)}
+        />
       </div>
     </div>
   );

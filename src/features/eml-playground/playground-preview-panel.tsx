@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from "react";
 import { LuCheck, LuCopy } from "react-icons/lu";
 
 import { Button } from "@/components/ui/button";
+import { LoadingMark } from "@/components/ui/loading-mark";
 import { Textarea } from "@/components/ui/textarea";
 import { AsyncMessage, SegmentedTabs } from "@/features/eml-playground/playground-shared";
 import type { PlaygroundStudioState } from "@/features/eml-playground/use-playground-studio";
@@ -18,6 +20,25 @@ export function PlaygroundPreviewPanel({ studio }: { studio: PlaygroundStudioSta
     handleCopyD2,
     expressionViews,
   } = studio;
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+
+  useEffect(() => {
+    if (!d2Preview.svgUrl) {
+      setIsImageLoading(false);
+      return;
+    }
+
+    setIsImageLoading(true);
+  }, [d2Preview.svgUrl]);
+
+  useEffect(() => {
+    if (!d2Preview.svgUrl || !imageRef.current?.complete) return;
+    setIsImageLoading(false);
+  }, [d2Preview.svgUrl]);
+
+  const showPreviewViewport = d2Preview.isRendering || d2Preview.svgUrl;
+  const showPreviewLoading = d2Preview.isRendering || isImageLoading;
 
   return (
     <div ref={previewActivation.ref} className="min-w-0 space-y-2.5 xl:sticky xl:top-5">
@@ -40,7 +61,7 @@ export function PlaygroundPreviewPanel({ studio }: { studio: PlaygroundStudioSta
             items={expressionViews.map((view) => ({
               value: view.key,
               label: view.title,
-              shortLabel: view.title.split(" ")[0] ?? view.title,
+              shortLabel: view.shortLabel,
             }))}
           />
         </div>
@@ -56,18 +77,39 @@ export function PlaygroundPreviewPanel({ studio }: { studio: PlaygroundStudioSta
                 detail: d2Preview.renderError,
               })}
             </AsyncMessage>
-          ) : d2Preview.isRendering ? (
-            <AsyncMessage>{messages.playground.diagram.loading}</AsyncMessage>
-          ) : d2Preview.svgUrl ? (
-            <div className="d2-viewport rounded-[0.9rem] border border-[color:var(--line)]">
-              <img
-                src={d2Preview.svgUrl}
-                alt={messages.playground.diagram.previewAriaLabel({
-                  mode: messages.playground.diagram.eyebrow,
-                })}
-                className="d2-preview-image"
-                onError={d2Preview.handleImageError}
-              />
+          ) : showPreviewViewport ? (
+            <div
+              className={[
+                "d2-viewport rounded-[0.9rem] border border-[color:var(--line)]",
+                showPreviewLoading ? "d2-viewport-loading" : "",
+              ].join(" ")}
+            >
+              {d2Preview.svgUrl ? (
+                <img
+                  ref={imageRef}
+                  src={d2Preview.svgUrl}
+                  alt={messages.playground.diagram.previewAriaLabel({
+                    mode: messages.playground.diagram.eyebrow,
+                  })}
+                  className={[
+                    "d2-preview-image transition-opacity duration-200",
+                    showPreviewLoading ? "opacity-0" : "opacity-100",
+                  ].join(" ")}
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => {
+                    setIsImageLoading(false);
+                    d2Preview.handleImageError();
+                  }}
+                />
+              ) : null}
+              {showPreviewLoading ? (
+                <div className="d2-preview-overlay">
+                  <LoadingMark />
+                </div>
+              ) : null}
+              {d2Preview.isRendering ? (
+                <div className="sr-only">{messages.playground.diagram.loading}</div>
+              ) : null}
             </div>
           ) : (
             <AsyncMessage>{messages.playground.diagram.empty}</AsyncMessage>

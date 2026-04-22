@@ -198,21 +198,29 @@ export const zhCN = {
       typesLabel: "运算族",
       standard: {
         title: "Standard AST",
+        shortLabel: "标准",
+        summary: "parse 后的原始树。",
         description: "用户输入被 parse 后得到的原始表达式树。",
         api: "parse + analyzeExpr",
       },
       pure: {
         title: "Pure EML",
+        shortLabel: "纯 EML",
+        summary: "lowering 后的统一树。",
         description: "精确 lowering 到 EML 核心语法后的结果。",
         api: "toPureEml / reduceTypes",
       },
       shortest: {
         title: "Shortest Form",
+        shortLabel: "最短",
+        summary: "更短、更可读的候选式。",
         description: "以可读性为目标的搜索结果，可能混用标准运算和 EML。",
         api: "reduceTokens",
       },
       lifted: {
         title: "Lifted Form",
+        shortLabel: "回升",
+        summary: "从 pure witness 回升后的表达式。",
         description: "从纯 EML witness 再回升到人类更容易读的表达式。",
         api: "simplifyToElementary",
       },
@@ -277,6 +285,7 @@ export const zhCN = {
       compression: {
         eyebrow: "Compression",
         title: "纯 EML 压缩",
+        shortLabel: "压缩",
         description:
           "对当前 pure EML witness 做一次受限搜索，看看能否在保持数值误差受控的前提下，找到更短的纯 EML 树。",
         levelLabel: "压缩级别",
@@ -301,6 +310,7 @@ export const zhCN = {
       synthesis: {
         eyebrow: "Synthesis",
         title: "纯 EML 合成器",
+        shortLabel: "合成",
         description:
           "直接在纯 EML 树空间里做数值驱动搜索，对应论文里“先数值筛，再验证”的构造式工作流。",
         samples: [
@@ -328,6 +338,7 @@ export const zhCN = {
       master: {
         eyebrow: "Master Formula",
         title: "梯度训练器",
+        shortLabel: "训练",
         description:
           "用 Adam 去拟合论文里的参数化 master tree，再把训练好的软参数 clamp 回离散的 EML 表达式。",
         presetLabel: "演示目标",

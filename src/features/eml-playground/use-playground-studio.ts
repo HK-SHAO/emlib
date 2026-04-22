@@ -11,15 +11,9 @@ import {
   trainMasterFormula,
   type CompressionLevel,
 } from "emlib";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  DEFAULT_COMPRESSION_MODE,
-  DEFAULT_EXPRESSION,
-  DEFAULT_MASTER_PRESET,
-  DEFAULT_SYNTH_BEAM_WIDTH,
-  DEFAULT_SYNTH_MAX_LEAVES,
-  DEFAULT_SYNTH_TARGET,
   PURE_RENDER_LIMIT,
   type CompressionMode,
   type DiagramSource,
@@ -31,6 +25,10 @@ import {
   type ExpressionTransform,
   useExpressionAnalysis,
 } from "@/features/eml-playground/use-expression-analysis";
+import {
+  readPlaygroundUrlState,
+  usePlaygroundUrlSync,
+} from "@/features/eml-playground/use-playground-url-sync";
 import {
   collectVariables,
   defaultValueForVariable,
@@ -44,6 +42,8 @@ export type ExperimentTab = "compression" | "synthesis" | "master";
 export type ResultView = {
   key: DiagramSource;
   title: string;
+  shortLabel: string;
+  summary: string;
   description: string;
   apiLabel: string;
   transform: ExpressionTransform;
@@ -142,27 +142,31 @@ function waitForPaint() {
 
 export function usePlaygroundStudio() {
   const { formatNumber, messages } = useI18n();
-  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("analyze");
-  const [experimentTab, setExperimentTab] = useState<ExperimentTab>("compression");
-  const [expression, setExpression] = useState(DEFAULT_EXPRESSION);
-  const [diagramSource, setDiagramSource] = useState<DiagramSource>("pure");
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>("dagre");
-  const [envValues, setEnvValues] = useState<Record<string, string>>({
-    x: "0.5",
-    y: "2",
-  });
+  const initialUrlStateRef = useRef<ReturnType<typeof readPlaygroundUrlState> | null>(null);
+
+  if (initialUrlStateRef.current === null) {
+    initialUrlStateRef.current = readPlaygroundUrlState();
+  }
+
+  const initialUrlState = initialUrlStateRef.current;
+  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>(initialUrlState.workspaceTab);
+  const [experimentTab, setExperimentTab] = useState<ExperimentTab>(initialUrlState.experimentTab);
+  const [expression, setExpression] = useState(initialUrlState.expression);
+  const [diagramSource, setDiagramSource] = useState<DiagramSource>(initialUrlState.diagramSource);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(initialUrlState.layoutMode);
+  const [envValues, setEnvValues] = useState<Record<string, string>>(initialUrlState.envValues);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const [compressionMode, setCompressionMode] = useState<CompressionMode>(DEFAULT_COMPRESSION_MODE);
+  const [compressionMode, setCompressionMode] = useState<CompressionMode>(initialUrlState.compressionMode);
   const [compressionState, setCompressionState] = useState<AsyncState<CompressionDemoResult>>({
     status: "idle",
   });
-  const [synthTarget, setSynthTarget] = useState(DEFAULT_SYNTH_TARGET);
-  const [synthMaxLeaves, setSynthMaxLeaves] = useState(DEFAULT_SYNTH_MAX_LEAVES);
-  const [synthBeamWidth, setSynthBeamWidth] = useState(DEFAULT_SYNTH_BEAM_WIDTH);
+  const [synthTarget, setSynthTarget] = useState(initialUrlState.synthTarget);
+  const [synthMaxLeaves, setSynthMaxLeaves] = useState(initialUrlState.synthMaxLeaves);
+  const [synthBeamWidth, setSynthBeamWidth] = useState(initialUrlState.synthBeamWidth);
   const [synthesisState, setSynthesisState] = useState<AsyncState<SynthesisDemoResult>>({
     status: "idle",
   });
-  const [masterPresetId, setMasterPresetId] = useState<MasterPresetId>(DEFAULT_MASTER_PRESET);
+  const [masterPresetId, setMasterPresetId] = useState<MasterPresetId>(initialUrlState.masterPresetId);
   const [masterState, setMasterState] = useState<AsyncState<MasterDemoResult>>({
     status: "idle",
   });
@@ -171,6 +175,59 @@ export function usePlaygroundStudio() {
   const previewActivation = usePreviewActivation<HTMLDivElement>();
   const masterPreset = MASTER_PRESETS[masterPresetId];
   const masterTree = useMemo(() => createMasterTree(masterPreset.depth), [masterPreset.depth]);
+
+  usePlaygroundUrlSync({
+    state: {
+      workspaceTab,
+      experimentTab,
+      expression,
+      diagramSource,
+      layoutMode,
+      envValues,
+      compressionMode,
+      synthTarget,
+      synthMaxLeaves,
+      synthBeamWidth,
+      masterPresetId,
+    },
+    applyState: (nextState) => {
+      setWorkspaceTab((previous) =>
+        previous === nextState.workspaceTab ? previous : nextState.workspaceTab,
+      );
+      setExperimentTab((previous) =>
+        previous === nextState.experimentTab ? previous : nextState.experimentTab,
+      );
+      setExpression((previous) =>
+        previous === nextState.expression ? previous : nextState.expression,
+      );
+      setDiagramSource((previous) =>
+        previous === nextState.diagramSource ? previous : nextState.diagramSource,
+      );
+      setLayoutMode((previous) =>
+        previous === nextState.layoutMode ? previous : nextState.layoutMode,
+      );
+      setEnvValues((previous) => {
+        const previousJson = JSON.stringify(previous);
+        const nextJson = JSON.stringify(nextState.envValues);
+        return previousJson === nextJson ? previous : nextState.envValues;
+      });
+      setCompressionMode((previous) =>
+        previous === nextState.compressionMode ? previous : nextState.compressionMode,
+      );
+      setSynthTarget((previous) =>
+        previous === nextState.synthTarget ? previous : nextState.synthTarget,
+      );
+      setSynthMaxLeaves((previous) =>
+        previous === nextState.synthMaxLeaves ? previous : nextState.synthMaxLeaves,
+      );
+      setSynthBeamWidth((previous) =>
+        previous === nextState.synthBeamWidth ? previous : nextState.synthBeamWidth,
+      );
+      setMasterPresetId((previous) =>
+        previous === nextState.masterPresetId ? previous : nextState.masterPresetId,
+      );
+    },
+  });
 
   useEffect(() => {
     if (!analysisState.ok) return;
@@ -214,6 +271,8 @@ export function usePlaygroundStudio() {
       {
         key: "standard",
         title: messages.playground.transforms.standard.title,
+        shortLabel: messages.playground.transforms.standard.shortLabel,
+        summary: messages.playground.transforms.standard.summary,
         description: messages.playground.transforms.standard.description,
         apiLabel: messages.playground.transforms.standard.api,
         transform: analysisState.standard,
@@ -221,6 +280,8 @@ export function usePlaygroundStudio() {
       {
         key: "pure",
         title: messages.playground.transforms.pure.title,
+        shortLabel: messages.playground.transforms.pure.shortLabel,
+        summary: messages.playground.transforms.pure.summary,
         description: messages.playground.transforms.pure.description,
         apiLabel: messages.playground.transforms.pure.api,
         transform: analysisState.pure,
@@ -228,6 +289,8 @@ export function usePlaygroundStudio() {
       {
         key: "shortest",
         title: messages.playground.transforms.shortest.title,
+        shortLabel: messages.playground.transforms.shortest.shortLabel,
+        summary: messages.playground.transforms.shortest.summary,
         description: messages.playground.transforms.shortest.description,
         apiLabel: messages.playground.transforms.shortest.api,
         transform: analysisState.shortest,
@@ -235,6 +298,8 @@ export function usePlaygroundStudio() {
       {
         key: "lifted",
         title: messages.playground.transforms.lifted.title,
+        shortLabel: messages.playground.transforms.lifted.shortLabel,
+        summary: messages.playground.transforms.lifted.summary,
         description: messages.playground.transforms.lifted.description,
         apiLabel: messages.playground.transforms.lifted.api,
         transform: analysisState.lifted,

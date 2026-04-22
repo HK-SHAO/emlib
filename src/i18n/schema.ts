@@ -218,21 +218,29 @@ export const baseMessages = {
       typesLabel: "Operators",
       standard: {
         title: "Standard AST",
+        shortLabel: "Standard",
+        summary: "The parsed input tree.",
         description: "The parsed input expression before any reduction.",
         api: "parse + analyzeExpr",
       },
       pure: {
         title: "Pure EML",
+        shortLabel: "Pure",
+        summary: "The exact EML lowering.",
         description: "The exact lowering into the EML core grammar.",
         api: "toPureEml / reduceTypes",
       },
       shortest: {
         title: "Shortest Form",
+        shortLabel: "Shortest",
+        summary: "A shorter readable candidate.",
         description: "A readability-first search that may mix standard operators and EML.",
         api: "reduceTokens",
       },
       lifted: {
         title: "Lifted Form",
+        shortLabel: "Lifted",
+        summary: "A human-readable recovered form.",
         description: "A readable expression reconstructed from the pure EML witness.",
         api: "simplifyToElementary",
       },
@@ -302,6 +310,7 @@ export const baseMessages = {
       compression: {
         eyebrow: "Compression",
         title: "Pure EML Compression",
+        shortLabel: "Compress",
         description:
           "Run a bounded search for a shorter pure EML witness while validating that the numeric delta stays small.",
         levelLabel: "Compression level",
@@ -326,6 +335,7 @@ export const baseMessages = {
       synthesis: {
         eyebrow: "Synthesis",
         title: "Pure EML Synthesizer",
+        shortLabel: "Synthesize",
         description:
           "Search the pure EML tree space directly from numeric samples, mirroring the paper's constructive search workflow.",
         samples: [
@@ -354,6 +364,7 @@ export const baseMessages = {
       master: {
         eyebrow: "Master Formula",
         title: "Gradient Trainer",
+        shortLabel: "Train",
         description:
           "Fit the paper's parameterized master tree with Adam, then clamp it back into a discrete EML expression when training converges.",
         presetLabel: "Demo target",

@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LoadingMark } from "@/components/ui/loading-mark";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -168,13 +169,8 @@ export function SegmentedTabs<T extends string>({
 
 export function PlaygroundTabFallback() {
   return (
-    <div className="space-y-3">
-      <div className="h-10 rounded-[0.95rem] border border-[color:var(--line)] bg-white/70" />
-      <div className="h-32 rounded-[1rem] border border-[color:var(--line)] bg-white/70" />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="h-32 rounded-[1rem] border border-[color:var(--line)] bg-white/70" />
-        <div className="h-32 rounded-[1rem] border border-[color:var(--line)] bg-white/70" />
-      </div>
+    <div className="flex min-h-80 items-center justify-center rounded-[1rem] border border-[color:var(--line)] bg-white/50">
+      <LoadingMark />
     </div>
   );
 }

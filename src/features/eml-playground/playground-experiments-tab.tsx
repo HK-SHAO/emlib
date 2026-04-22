@@ -69,17 +69,17 @@ export default function PlaygroundExperimentsTab({ studio }: { studio: Playgroun
           {
             value: "compression",
             label: messages.playground.experiments.compression.title,
-            shortLabel: "压缩",
+            shortLabel: messages.playground.experiments.compression.shortLabel,
           },
           {
             value: "synthesis",
             label: messages.playground.experiments.synthesis.title,
-            shortLabel: "合成",
+            shortLabel: messages.playground.experiments.synthesis.shortLabel,
           },
           {
             value: "master",
             label: messages.playground.experiments.master.title,
-            shortLabel: "训练",
+            shortLabel: messages.playground.experiments.master.shortLabel,
           },
         ]}
       />

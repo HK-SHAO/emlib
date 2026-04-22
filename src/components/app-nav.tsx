@@ -36,6 +36,34 @@ const externalItems = [
   icon: IconType;
 }[];
 
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  active = false,
+  external = false,
+}: {
+  href: string;
+  label: string;
+  icon: IconType;
+  active?: boolean;
+  external?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      aria-current={active ? "page" : undefined}
+      aria-label={label}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noreferrer" : undefined}
+      className={`app-nav-link justify-center gap-2 max-[520px]:gap-0 ${active ? "app-nav-link-active" : ""}`}
+    >
+      <Icon className="size-4" aria-hidden="true" />
+      <span className="max-[520px]:hidden">{label}</span>
+    </a>
+  );
+}
+
 export function AppNav() {
   const { messages } = useI18n();
   const { activeId } = useScrollSectionHash(navItems.map((item) => item.id));
@@ -65,40 +93,32 @@ export function AppNav() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-1 lg:justify-end">
             <nav
               aria-label="Primary"
-              className="flex min-w-0 items-center gap-1 overflow-x-auto pb-1 sm:pb-0"
+              className="min-w-0 overflow-x-auto pb-1 sm:pb-0"
             >
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeId === item.id;
-
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`app-nav-link gap-2 ${isActive ? "app-nav-link-active" : ""}`}
-                  >
-                    <Icon className="size-4" aria-hidden="true" />
-                    {messages.app.nav[item.key]}
-                  </a>
-                );
-              })}
-              {externalItems.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="app-nav-link gap-2"
-                  >
-                    <Icon className="size-4" aria-hidden="true" />
-                    {messages.app.nav[item.key]}
-                  </a>
-                );
-              })}
+              <div className="flex min-w-full w-max items-center justify-center gap-1">
+                {navItems.map((item) => {
+                  return (
+                    <NavLink
+                      key={item.href}
+                      href={item.href}
+                      label={messages.app.nav[item.key]}
+                      icon={item.icon}
+                      active={activeId === item.id}
+                    />
+                  );
+                })}
+                {externalItems.map((item) => {
+                  return (
+                    <NavLink
+                      key={item.href}
+                      href={item.href}
+                      label={messages.app.nav[item.key]}
+                      icon={item.icon}
+                      external
+                    />
+                  );
+                })}
+              </div>
             </nav>
             <div className="not-sm:hidden">
               <LanguageToggle />
