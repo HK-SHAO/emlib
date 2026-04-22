@@ -1,10 +1,6 @@
 # emlib
 
-A TypeScript library centered on three jobs:
-
-1. reduce function kinds (`Type`) as far as possible
-2. reduce total expression tokens (`Token`) as far as possible
-3. evaluate with lossless big integers / rationals / complex rationals when possible, and fall back to approximate numeric evaluation when needed
+`emlib` is the TypeScript library inside the EML monorepo. It provides the expression pipeline used by the playground: parse elementary expressions, analyze them, lower them to pure EML, search for shorter mixed forms, evaluate them, export diagrams, and run experimental synthesis or training helpers.
 
 The core operator is:
 
@@ -12,83 +8,101 @@ $$
 \mathrm{eml}(x, y) = \exp(x) - \ln(y)
 $$
 
+## Install
+
+This package is currently developed as a workspace package in this repository.
+
+```bash
+bun install
+```
+
+Inside the package directory you can run:
+
+```bash
+bun run build
+bun run test
+```
+
 ## Main APIs
 
-- `parse(expr)` parses a standard elementary expression AST
-- `reduceTypes(expr)` lowers toward the EML core, favoring fewer kinds even if the tree gets larger
-- `reduceTokens(expr)` searches for a shorter equivalent expression, allowing mixed vocabularies including `eml`
-- `compressPureEml(expr, options?)` runs an optional semantic compression pass over a pure EML tree, trading more search for fewer tokens while bounding `|delta|`
-- `analyzeExpr(expr)` reports `tokenCount`, `typeCount`, and the type set
-- `evaluateLossless(expr, env?)` performs exact arithmetic for integers, rationals, and complex rationals; transcendental leftovers stay symbolic
+### Core expression workflow
+
+- `parse(expr)` parses a supported elementary expression string into the AST
+- `toString(expr)` prints the AST back to a compact expression string
+- `analyzeExpr(expr)` reports token count, operator-family count, and the operator set
+- `reduceTypes(expr)` lowers toward the pure EML core, prioritizing fewer operator kinds
+- `toPureEml(expr, options?)` lowers to pure EML by default and can optionally run post-lowering compression
+- `reduceTokens(expr, options?)` searches for a shorter equivalent mixed-vocabulary expression
+- `simplifyToElementary(expr, options?)` rewrites a pure EML witness back toward a readable elementary form
+
+### Evaluation and numeric helpers
+
 - `evaluate(expr, env?)` performs approximate complex evaluation
-- `exprToD2(expr)` exports a D2 expression tree using three visual node categories: function, variable, and constant
+- `evaluateLossless(expr, env?)` keeps exact rational and complex-rational arithmetic when possible and preserves symbolic transcendental leftovers otherwise
+- `valueToExpr(value)` turns a lossless value back into an expression AST
 
-Compatibility exports are still present:
+### Visualization and analysis
 
-- `toPureEml(expr, options?)` lowers to pure EML and optionally runs semantic compression
-- `simplifyToElementary(expr)` currently delegates to `reduceTokens(expr)`
+- `exprToD2(expr, options?)` exports a D2 expression tree
+- `countTokens(expr)`, `countTypes(expr)`, `collectVariables(expr)`, and related helpers are also exported
 
-## Supported expression family
+### Experimental APIs
+
+- `compressPureEml(expr, options?)` runs an optional search pass that may reduce pure EML token count while bounding validation error
+- `synthesizePureEml(target, options?)` searches for a pure EML candidate for a target expression
+- `createMasterTree()`, `forwardMaster()`, `masterToExpr()`, and `trainMasterFormula()` support the repository's master-formula experiments
+
+Experimental APIs are useful for research and demos, but they should be treated as evolving surfaces rather than long-term stable public contracts.
+
+## Supported Expression Family
 
 - arithmetic: `+ - * / ^`
 - constants: numeric literals, `e`, `pi`, `i`
-- transcendental core: `exp`, `ln`, `sqrt`
+- transcendental core: `exp`, `ln`, `sqrt`, `eml` / `E`
 - trigonometric: `sin`, `cos`, `tan`, `cot`, `sec`, `csc`
 - hyperbolic: `sinh`, `cosh`, `tanh`, `coth`, `sech`, `csch`
 - inverse families: `asin`, `acos`, `atan`, `asec`, `acsc`, `acot`, `asinh`, `acosh`, `atanh`
 
-## Examples
+## Example
 
 ```ts
 import {
   analyzeExpr,
   evaluate,
   evaluateLossless,
+  exprToD2,
   parse,
   reduceTokens,
-  reduceTypes,
+  toPureEml,
   toString,
   valueToExpr,
-} from "./src/index";
+} from "emlib";
 
 const expr = parse("exp(x) - ln(y)");
 
 console.log(analyzeExpr(expr));
-// { tokenCount: 5, typeCount: 3, types: ['exp', 'ln', 'sub'] }
-
-console.log(toString(reduceTypes(expr)));
-// pure EML form with only eml(...) and numeric leaves
-
-console.log(toString(toPureEml(parse("tan(x)"), { compression: "light" })));
-// same pure-EML interface, but allows an extra iterative compression pass
-
+console.log(toString(toPureEml(expr)));
 console.log(toString(reduceTokens(expr)));
-// eml(x, y)
-
-console.log(exprToD2(expr));
-// D2 source with function / variable / constant node classes
-
-console.log(exprToD2(reduceTypes(parse("ln(x)"))));
-// reduced trees use the same generic D2 visualization
-
+console.log(evaluate(expr, { x: 1.25, y: 3 }));
 console.log(toString(valueToExpr(evaluateLossless(parse("(1+2*i)/(3-4*i)")))));
-// -1 / 5 + 2 / 5 * i
-
-console.log(evaluate(parse("sin(1/3)")));
-// approximate complex value
+console.log(exprToD2(expr));
 ```
 
-## Install
+## Behavior Notes
 
-```bash
-bun install
-bun test
-```
+- `reduceTypes()` optimizes for a smaller operator family, not for smaller printed output. Pure EML trees often get much larger.
+- `reduceTokens()` optimizes for a shorter printed expression and may choose either standard operators or `E(...)` depending on what scores better.
+- `toPureEml(expr, { compression })` adds an optional compression pass after default exact lowering. Available levels are `light`, `medium`, and `aggressive`.
+- `evaluateLossless()` is conservative on branch-sensitive transcendental identities. When exact symbolic cancellation is unsafe, it preserves symbolic form instead of forcing a numeric approximation.
+- `evaluate()` uses approximate complex arithmetic with the implemented principal-branch semantics.
 
-## Notes
+## Development Notes
 
-- `reduceTypes` is the “fewer kinds” direction; it is intentionally willing to expand token count.
-- `toPureEml(expr, { compression })` adds an iterative DP / heuristic compression pass on top of exact lowering. Use `light`, `medium`, or `aggressive` when you want to spend more time to reduce pure-EML token count while keeping `|delta|` bounded on independent validation samples.
-- `reduceTokens` is the “shorter expression” direction; it can choose `eml(...)` or standard functions depending on which prints shorter.
-- `synthesizePureEml` and `compressPureEml` now report both RMSE-like `distance` and max absolute validation error `delta`.
-- `evaluateLossless` is exact on algebraic-rational arithmetic. For transcendentals like `sin(1/3)`, it preserves the symbolic value instead of silently rounding.
+- Source files live in [`src/`](./src)
+- Tests live in [`test/`](./test)
+- Package entrypoint exports from [`src/index.ts`](./src/index.ts)
+- Build output is generated by `tsgo` according to [`tsconfig.json`](./tsconfig.json)
+
+## Relationship To The Monorepo
+
+`emlib` is consumed directly by the playground app in the repository root. For project-wide setup, docs, and contribution guidance, see the root [`README.md`](../../README.md).
