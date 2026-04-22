@@ -12,10 +12,7 @@ import {
   type LayoutMode,
   type MasterPresetId,
 } from "@/features/eml-playground/constants";
-import type {
-  ExperimentTab,
-  WorkspaceTab,
-} from "@/features/eml-playground/use-playground-studio";
+import type { ExperimentTab, WorkspaceTab } from "@/features/eml-playground/use-playground-studio";
 
 export type PlaygroundUrlState = {
   workspaceTab: WorkspaceTab;
@@ -45,7 +42,11 @@ const queryKeys = {
   masterPresetId: "preset",
 } as const;
 
-const workspaceTabs = ["analyze", "compare", "experiments"] as const satisfies readonly WorkspaceTab[];
+const workspaceTabs = [
+  "analyze",
+  "compare",
+  "experiments",
+] as const satisfies readonly WorkspaceTab[];
 const experimentTabs = [
   "compression",
   "synthesis",
@@ -82,7 +83,10 @@ const defaultPlaygroundUrlState: PlaygroundUrlState = {
   masterPresetId: DEFAULT_MASTER_PRESET,
 };
 
-function isOneOf<T extends readonly string[]>(value: string | null, allowed: T): value is T[number] {
+function isOneOf<T extends readonly string[]>(
+  value: string | null,
+  allowed: T,
+): value is T[number] {
   return value !== null && allowed.includes(value);
 }
 

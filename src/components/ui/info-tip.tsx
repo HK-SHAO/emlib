@@ -60,12 +60,7 @@ export function InfoTip({ label, className }: { label: string; className?: strin
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-        <TooltipContent
-          side="top"
-          align="end"
-          sideOffset={8}
-          className={contentClassName}
-        >
+        <TooltipContent side="top" align="end" sideOffset={8} className={contentClassName}>
           {label}
         </TooltipContent>
       </Tooltip>

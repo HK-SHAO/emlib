@@ -2,10 +2,7 @@ import { Button } from "@/components/ui/button";
 import { InfoTip } from "@/components/ui/info-tip";
 import { StatPill } from "@/features/eml-playground/playground-shared";
 import type { ExpressionTransform } from "@/features/eml-playground/use-expression-analysis";
-import {
-  formatSignedDelta,
-  formatTypeSet,
-} from "@/features/eml-playground/utils";
+import { formatSignedDelta, formatTypeSet } from "@/features/eml-playground/utils";
 
 export function ResultCard({
   active,
@@ -59,14 +56,10 @@ export function ResultCard({
             {apiLabel}
           </div>
           <div className="mt-1 flex items-start gap-2">
-            <div className="min-w-0 text-[15px] font-semibold text-[color:var(--ink)]">
-              {title}
-            </div>
+            <div className="min-w-0 text-[15px] font-semibold text-[color:var(--ink)]">{title}</div>
             <InfoTip label={description} className="shrink-0" />
           </div>
-          <p className="mt-1 text-sm leading-5 text-[color:var(--ink-soft)]">
-            {summary}
-          </p>
+          <p className="mt-1 text-sm leading-5 text-[color:var(--ink-soft)]">{summary}</p>
         </div>
         <Button
           type="button"
@@ -84,22 +77,13 @@ export function ResultCard({
       </pre>
 
       <div className="mt-3 grid gap-2 grid-cols-2 xl:grid-cols-4">
-        <StatPill
-          label={tokenNodeLabel}
-          value={formatNumber(transform.metrics.tokenCount)}
-        />
-        <StatPill
-          label={operatorTypeLabel}
-          value={formatNumber(transform.metrics.typeCount)}
-        />
+        <StatPill label={tokenNodeLabel} value={formatNumber(transform.metrics.tokenCount)} />
+        <StatPill label={operatorTypeLabel} value={formatNumber(transform.metrics.typeCount)} />
         <StatPill
           label={deltaLabel}
           value={`${formatSignedDelta(tokenDelta)} / ${formatSignedDelta(typeDelta)}`}
         />
-        <StatPill
-          label={typesLabel}
-          value={formatTypeSet(transform.metrics.types)}
-        />
+        <StatPill label={typesLabel} value={formatTypeSet(transform.metrics.types)} />
       </div>
     </div>
   );

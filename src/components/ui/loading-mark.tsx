@@ -2,11 +2,7 @@ import { LuLoaderCircle } from "react-icons/lu";
 
 import { cn } from "@/lib/utils";
 
-export function LoadingMark({
-  className,
-}: {
-  className?: string;
-}) {
+export function LoadingMark({ className }: { className?: string }) {
   return (
     <div
       role="status"

@@ -91,10 +91,7 @@ export function AppNav() {
           </a>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-1 lg:justify-end">
-            <nav
-              aria-label="Primary"
-              className="min-w-0 overflow-x-auto pb-1 sm:pb-0"
-            >
+            <nav aria-label="Primary" className="min-w-0 overflow-x-auto pb-1 sm:pb-0">
               <div className="flex min-w-full w-max items-center justify-center gap-1">
                 {navItems.map((item) => {
                   return (

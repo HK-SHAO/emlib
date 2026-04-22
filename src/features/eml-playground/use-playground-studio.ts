@@ -156,7 +156,9 @@ export function usePlaygroundStudio() {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(initialUrlState.layoutMode);
   const [envValues, setEnvValues] = useState<Record<string, string>>(initialUrlState.envValues);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const [compressionMode, setCompressionMode] = useState<CompressionMode>(initialUrlState.compressionMode);
+  const [compressionMode, setCompressionMode] = useState<CompressionMode>(
+    initialUrlState.compressionMode,
+  );
   const [compressionState, setCompressionState] = useState<AsyncState<CompressionDemoResult>>({
     status: "idle",
   });
@@ -166,7 +168,9 @@ export function usePlaygroundStudio() {
   const [synthesisState, setSynthesisState] = useState<AsyncState<SynthesisDemoResult>>({
     status: "idle",
   });
-  const [masterPresetId, setMasterPresetId] = useState<MasterPresetId>(initialUrlState.masterPresetId);
+  const [masterPresetId, setMasterPresetId] = useState<MasterPresetId>(
+    initialUrlState.masterPresetId,
+  );
   const [masterState, setMasterState] = useState<AsyncState<MasterDemoResult>>({
     status: "idle",
   });
