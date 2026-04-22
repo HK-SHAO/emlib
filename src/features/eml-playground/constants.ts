@@ -15,7 +15,7 @@ export type LayoutMode = "dagre" | "elk";
 export type CompressionMode = "light" | "medium" | "aggressive";
 export type MasterPresetId = "exp" | "eMinusX" | "ln";
 
-export const DEFAULT_EXPRESSION = "exp(x^2) - ln(x*y)";
+export const DEFAULT_EXPRESSION = "exp(-x) - ln(x*y)";
 export const PURE_RENDER_LIMIT = 10000;
 export const DEFAULT_SYNTH_TARGET = "ln(x)";
 export const DEFAULT_SYNTH_MAX_LEAVES = 7;
