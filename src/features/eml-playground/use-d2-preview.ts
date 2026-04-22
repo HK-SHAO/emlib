@@ -1,5 +1,5 @@
 import type { D2 as D2Runtime } from "@terrastruct/d2";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { DiagramMode, LayoutMode } from "./constants";
 import { buildSvgDataUrl, normalizeRenderedSvg } from "./utils";
@@ -16,11 +16,14 @@ async function loadD2Runtime() {
 }
 
 export function usePreviewActivation<T extends Element>() {
-  const ref = useRef<T | null>(null);
+  const [node, setNode] = useState<T | null>(null);
   const [isActivated, setIsActivated] = useState(false);
+  const ref = useCallback((nextNode: T | null) => {
+    setNode(nextNode);
+  }, []);
 
   useEffect(() => {
-    if (isActivated || !ref.current) return;
+    if (isActivated || !node) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -31,9 +34,9 @@ export function usePreviewActivation<T extends Element>() {
       { rootMargin: "280px 0px" },
     );
 
-    observer.observe(ref.current);
+    observer.observe(node);
     return () => observer.disconnect();
-  }, [isActivated]);
+  }, [isActivated, node]);
 
   return { ref, isActivated };
 }
