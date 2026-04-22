@@ -1,24 +1,72 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+const HASH_SYNC_RESUME_DELAY_MS = 120;
+const HASH_SYNC_MAX_PAUSE_MS = 2400;
 
 type ScrollSectionHashOptions = {
   anchorOffsetRatio?: number;
+  enabled?: boolean;
   replaceHistory?: boolean;
 };
 
+function getCurrentHashId() {
+  if (typeof window === "undefined") return "";
+  return decodeURIComponent(window.location.hash.slice(1));
+}
+
 export function useScrollSectionHash(
   sectionIds: readonly string[],
-  { anchorOffsetRatio = 0.28, replaceHistory = true }: ScrollSectionHashOptions = {},
+  { anchorOffsetRatio = 0.28, enabled = true, replaceHistory = true }: ScrollSectionHashOptions = {},
 ) {
   const normalizedIds = useMemo(() => sectionIds.filter((id) => id.length > 0), [sectionIds]);
   const idsKey = normalizedIds.join("|");
-  const [activeId, setActiveId] = useState(normalizedIds[0] ?? "");
+  const suppressScrollSyncRef = useRef(false);
+  const resumeTimeoutRef = useRef<number | null>(null);
+  const maxPauseTimeoutRef = useRef<number | null>(null);
+  const [activeId, setActiveId] = useState(() => {
+    const hashId = getCurrentHashId();
+    if (normalizedIds.includes(hashId)) return hashId;
+
+    return normalizedIds[0] ?? "";
+  });
 
   useEffect(() => {
-    if (typeof window === "undefined" || normalizedIds.length === 0) return;
+    if (typeof window === "undefined" || normalizedIds.length === 0 || !enabled) return;
 
     let frame = 0;
 
+    const clearResumeTimeout = () => {
+      if (resumeTimeoutRef.current === null) return;
+      window.clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    };
+
+    const clearMaxPauseTimeout = () => {
+      if (maxPauseTimeoutRef.current === null) return;
+      window.clearTimeout(maxPauseTimeoutRef.current);
+      maxPauseTimeoutRef.current = null;
+    };
+
+    const resumeScrollSync = () => {
+      suppressScrollSyncRef.current = false;
+      clearResumeTimeout();
+      clearMaxPauseTimeout();
+      scheduleSync();
+    };
+
+    const pauseScrollSync = () => {
+      suppressScrollSyncRef.current = true;
+      clearResumeTimeout();
+      resumeTimeoutRef.current = window.setTimeout(resumeScrollSync, HASH_SYNC_RESUME_DELAY_MS);
+
+      if (maxPauseTimeoutRef.current === null) {
+        maxPauseTimeoutRef.current = window.setTimeout(resumeScrollSync, HASH_SYNC_MAX_PAUSE_MS);
+      }
+    };
+
     const syncActiveSection = () => {
+      if (suppressScrollSyncRef.current) return;
+
       const anchorLine = window.innerHeight * anchorOffsetRatio;
       const sections = normalizedIds
         .map((id) => {
@@ -60,9 +108,22 @@ export function useScrollSectionHash(
       frame = window.requestAnimationFrame(syncActiveSection);
     };
 
+    const handleScroll = () => {
+      if (suppressScrollSyncRef.current) {
+        clearResumeTimeout();
+        resumeTimeoutRef.current = window.setTimeout(resumeScrollSync, HASH_SYNC_RESUME_DELAY_MS);
+      }
+      scheduleSync();
+    };
+
     const handleHashChange = () => {
-      const hashId = window.location.hash.slice(1);
-      if (!normalizedIds.includes(hashId)) return;
+      const hashId = getCurrentHashId();
+      if (!normalizedIds.includes(hashId)) {
+        resumeScrollSync();
+        return;
+      }
+
+      pauseScrollSync();
       setActiveId(hashId);
       scheduleSync();
     };
@@ -70,17 +131,19 @@ export function useScrollSectionHash(
     handleHashChange();
     scheduleSync();
 
-    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", scheduleSync);
     window.addEventListener("hashchange", handleHashChange);
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", scheduleSync);
+      clearResumeTimeout();
+      clearMaxPauseTimeout();
+      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", scheduleSync);
       window.removeEventListener("hashchange", handleHashChange);
     };
-  }, [anchorOffsetRatio, idsKey, normalizedIds, replaceHistory]);
+  }, [anchorOffsetRatio, enabled, idsKey, normalizedIds, replaceHistory]);
 
   return { activeId };
 }
