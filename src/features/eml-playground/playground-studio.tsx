@@ -19,6 +19,7 @@ const tabLoaders = {
 export function PlaygroundStudio() {
   const studio = usePlaygroundStudio();
   const { messages, workspaceTab, setWorkspaceTab } = studio;
+  const showPreviewPanel = workspaceTab !== "experiments";
 
   useEffect(() => {
     void tabLoaders[workspaceTab]();
@@ -50,7 +51,12 @@ export function PlaygroundStudio() {
         </div>
       </CardHeader>
       <CardContent className="px-4 pt-3.5 sm:px-5">
-        <div className="grid items-start gap-3.5 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,0.98fr)]">
+        <div
+          className={[
+            "grid items-start gap-3.5",
+            showPreviewPanel ? "xl:grid-cols-[minmax(0,0.82fr)_minmax(0,0.98fr)]" : "",
+          ].join(" ")}
+        >
           <div className="min-w-0 space-y-3.5">
             <SegmentedTabs
               value={workspaceTab}
@@ -77,7 +83,7 @@ export function PlaygroundStudio() {
               <ActiveTab studio={studio} />
             </Suspense>
           </div>
-          <PlaygroundPreviewPanel studio={studio} />
+          {showPreviewPanel ? <PlaygroundPreviewPanel studio={studio} /> : null}
         </div>
       </CardContent>
     </Card>
