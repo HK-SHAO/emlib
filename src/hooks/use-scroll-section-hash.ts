@@ -16,7 +16,11 @@ function getCurrentHashId() {
 
 export function useScrollSectionHash(
   sectionIds: readonly string[],
-  { anchorOffsetRatio = 0.28, enabled = true, replaceHistory = true }: ScrollSectionHashOptions = {},
+  {
+    anchorOffsetRatio = 0.28,
+    enabled = true,
+    replaceHistory = true,
+  }: ScrollSectionHashOptions = {},
 ) {
   const normalizedIds = useMemo(() => sectionIds.filter((id) => id.length > 0), [sectionIds]);
   const idsKey = normalizedIds.join("|");

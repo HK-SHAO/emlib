@@ -71,7 +71,8 @@ export function useInitialHashScroll(sectionIds: readonly string[]) {
 
       target.scrollIntoView({ block: "start", inline: "nearest" });
 
-      const scrollMarginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+      const scrollMarginTop =
+        Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
       const targetTop = target.getBoundingClientRect().top;
       const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
       const atBottom = window.scrollY >= maxScrollY - HASH_TOLERANCE_PX;

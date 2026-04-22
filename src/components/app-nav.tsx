@@ -66,9 +66,12 @@ function NavLink({
 
 export function AppNav({ hashSyncEnabled = true }: { hashSyncEnabled?: boolean }) {
   const { messages } = useI18n();
-  const { activeId } = useScrollSectionHash(navItems.map((item) => item.id), {
-    enabled: hashSyncEnabled,
-  });
+  const { activeId } = useScrollSectionHash(
+    navItems.map((item) => item.id),
+    {
+      enabled: hashSyncEnabled,
+    },
+  );
   const { isVisible } = useAutoHideNav();
 
   return (
