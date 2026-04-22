@@ -57,9 +57,8 @@ export function ResultCard({
           </div>
           <div className="mt-1 flex items-start gap-2">
             <div className="min-w-0 text-[15px] font-semibold text-[color:var(--ink)]">{title}</div>
-            <InfoTip label={description} className="shrink-0" />
+            <InfoTip label={`${summary} ${description}`} className="shrink-0" />
           </div>
-          <p className="mt-1 text-sm leading-5 text-[color:var(--ink-soft)]">{summary}</p>
         </div>
         <Button
           type="button"
